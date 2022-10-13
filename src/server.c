@@ -149,11 +149,6 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
         }
     }
 
-    // todo make new branch
-    // commit
-    // test this
-    // merge
-
     char msg[32];
     sn_count = snprintf(msg, 32, "%d\n", ERR_VAL);
     if(sn_count < 0){
