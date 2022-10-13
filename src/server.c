@@ -111,18 +111,6 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
 {
     int64_t count = (end - start) + 1;
 
-    char msg[32];
-
-    //printf("sendind %ld logs from %ld to %ld\n", count, start, end);
-        
-    if(snprintf(msg, 32, "%s\n%ld\n", command, count) < 0){
-        return false;
-    }
-
-    if(write(fd, msg, strlen(msg)) <= 0){
-        return false;
-    }
-
     char send_buffer[SEND_BUFFER_SIZE];
     char* send_buffer_ptr;
     int sn_count;
@@ -133,12 +121,15 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
         pthread_mutex_lock(&data_lock);
         while(count > 0){
             int32_t val = get_log(start);
-            sn_count = snprintf(send_buffer_ptr, 48, "%ld\n%d\n", start, val);
-            if(sn_count < 0){
-                printf("snprintf fail\n");
-                pthread_mutex_unlock(&data_lock);
-                pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-                return false;
+            sn_count = 0;
+            if(val != ERR_VAL){  
+                sn_count = snprintf(send_buffer_ptr, 48, "%ld\n%d\n", start, val);
+                if(sn_count < 0){
+                    printf("snprintf fail\n");
+                    pthread_mutex_unlock(&data_lock);
+                    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+                    return false;
+                }
             }
 
             *last_ptr = start;
@@ -157,6 +148,23 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
             return false;
         }
     }
+
+    // todo make new branch
+    // commit
+    // test this
+    // merge
+
+    char msg[32];
+    sn_count = snprintf(msg, 32, "%d\n", ERR_VAL);
+    if(sn_count < 0){
+        printf("snprintf fail\n");
+    }
+
+    if(write(fd, msg, strlen(msg)) <= 0){
+        perror("write");
+        return false;
+    }
+
     return true;
 }
 
