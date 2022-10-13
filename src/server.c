@@ -111,6 +111,10 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
 {
     int64_t count = (end - start) + 1;
 
+    if(write(fd, command, strlen(command)) <= 0){
+        return false;
+    }
+
     char send_buffer[SEND_BUFFER_SIZE];
     char* send_buffer_ptr;
     int sn_count;
@@ -123,7 +127,7 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
             int32_t val = get_log(start);
             sn_count = 0;
             if(val != ERR_VAL){  
-                sn_count = snprintf(send_buffer_ptr, 48, "%ld\n%d\n", start, val);
+                sn_count = snprintf(send_buffer_ptr, 48, "%d\n%ld\n", val, start);
                 if(sn_count < 0){
                     printf("snprintf fail\n");
                     pthread_mutex_unlock(&data_lock);
@@ -140,8 +144,13 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
                 break;
             }
         }
+
         pthread_mutex_unlock(&data_lock);
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
+        if(send_buffer_ptr - send_buffer == 0){
+            continue;
+        }
 
         if(write(fd, send_buffer, send_buffer_ptr - send_buffer) <= 0){
             perror("write");
@@ -150,6 +159,7 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t* last_ptr, char* comm
     }
 
     char msg[32];
+
     sn_count = snprintf(msg, 32, "%d\n", ERR_VAL);
     if(sn_count < 0){
         printf("snprintf fail\n");
@@ -183,7 +193,7 @@ bool send_realtime(ServerClient* client)
         client->last_sent_log_id = last_log - 1;
     }
 
-    send_logs(client->socket, client->last_sent_log_id + 1, last_log, &client->last_sent_log_id, "realtime");
+    send_logs(client->socket, client->last_sent_log_id + 1, last_log, &client->last_sent_log_id, "realtime\n");
 
     return true;
 }
@@ -203,7 +213,7 @@ bool send_requests(ServerClient* client){
         count = MIN(count, (DATA_REQUEST_CHUNK_SIZE_MINUTES * 60 * 1000) / SAMPLE_TIME_MS - sent);
         sent += count;
         
-        send_logs(client->socket, request->first_log_id, request->first_log_id + count - 1, &request->first_log_id, "logs");
+        send_logs(client->socket, request->first_log_id, request->first_log_id + count - 1, &request->first_log_id, "logs\n");
 
         if(request->first_log_id >= request->last_log_id){
             tail++;
