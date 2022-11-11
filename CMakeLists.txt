@@ -6,8 +6,8 @@ file(GLOB SOURCES "src/*.c")
 set(ZEJFCSEIS_VERSION "1.0.3")
 set(EXECUTABLE zejfcseis_${ZEJFCSEIS_VERSION})
 
-set(ALL_FLAGS "-g -pthread -std=gnu99 -Wall -Wextra")
-##set(ALL_FLAGS "-O2 -s -std=gnu99")
+##set(ALL_FLAGS "-g -pthread -std=gnu99 -Wall -Wextra")
+set(ALL_FLAGS "-O2 -s -std=gnu99")
 
 # Executable
 add_executable(${EXECUTABLE} ${SOURCES})
