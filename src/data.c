@@ -60,13 +60,62 @@ void datahour_destroy(DataHour *datahour)
     free(datahour);
 }
 
-bool datahour_save(DataHour *datahour, FILE *file)
+int mkpath(char *file_path, mode_t mode)
 {
-    if (datahour == NULL || file == NULL) {
+    for (char *p = strchr(file_path + 1, '/'); p; p = strchr(p + 1, '/')) {
+        *p = '\0';
+        if (mkdir(file_path, mode) == -1) {
+            if (errno != EEXIST) {
+                *p = '/';
+                return -1;
+            }
+        }
+        *p = '/';
+    }
+    return 0;
+}
+
+bool datahour_save(DataHour *dh)
+{
+    if (dh == NULL) {
         return false;
     }
 
-    return fwrite(datahour, datahour_get_size(), 1, file) == 1;
+    String *file = get_datahour_path_new(dh->hour_id);
+    String *path = string_create(file->data);
+    memset(strrchr(path->data, '/') + 1, '\0', 1);
+
+    struct stat st = { 0 };
+
+    if (stat(path->data, &st) == -1) {
+        printf("creating %s\n", path->data);
+        if (mkpath(path->data, 0700) != 0) {
+            perror("mkdir");
+            string_destroy(file);
+            string_destroy(path);
+            return false;
+        }
+    }
+
+    FILE *actual_file = fopen(file->data, "wb");
+    if (actual_file == NULL) {
+        perror("fopen");
+        string_destroy(file);
+        string_destroy(path);
+        return false;
+    }
+
+    printf("saving to %s, %d\n", file->data, dh->hour_id);
+
+    bool result = fwrite(dh, datahour_get_size(), 1, actual_file) == 1;
+
+    dh->modified = false;
+
+    fclose(actual_file);
+    string_destroy(file);
+    string_destroy(path);
+
+    return result;
 }
 
 DataHour *datahour_load(FILE *file)
@@ -122,9 +171,11 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new)
     }
     
     DataHour *dh = NULL;
+
+    bool modified = false;
     
     if(load_from_file){
-        String* path = get_datahour_path(hour_id);
+        String* path = get_datahour_path_new(hour_id);
         if(path == NULL){
             return NULL;
         }
@@ -134,9 +185,29 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new)
             dh = datahour_load(file);
             fclose(file);
         }else{
+            // TRY TO CONVERT
             perror(path->data);
+            String* path_old = get_datahour_path_old(hour_id);
+            if(path_old == NULL){
+                return NULL;
+            }
+            FILE* file_old = fopen(path_old->data, "rb");
+            if(file_old != NULL){
+                printf("Converting %s to %s\n", path_old->data, path->data);
+                dh = datahour_load(file_old);
+                modified = true;
+                create_new = true;
+                fclose(file_old);
+            }
+            string_destroy(path_old);
         }
         string_destroy(path);
+    }
+
+    if(dh != NULL && dh->hour_id != hour_id){
+        printf("Fatal: Loaded DataHour id doesn't match! (wanted %d, got %d) [%d]\n", hour_id, dh->hour_id, create_new);
+        datahour_destroy(dh);
+        dh = NULL;
     }
     
     if (create_new && dh == NULL) {
@@ -147,10 +218,9 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new)
     if(dh == NULL) {
         return NULL;
     }
-    
-    if(dh->hour_id != hour_id){
-        printf("Fatal: Loaded DataHour id doesn't match! (wanted %d, got %d)\n", hour_id, dh->hour_id);
-        return NULL;
+
+    if(modified){
+        dh -> modified = true;
     }
 
     list_append(datahours, &dh);
@@ -160,7 +230,7 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new)
 
 char months[12][10] = { "January\0", "February\0", "March\0", "April\0", "May\0", "June\0", "July\0", "August\0", "September\0", "October\0", "November\0", "December\0" };
 
-String *get_datahour_path(int32_t hour_id)
+String *get_datahour_path_old(int32_t hour_id)
 {
     String *result = string_create(MAIN_FOLDER);
     if(result == NULL){
@@ -173,11 +243,37 @@ String *get_datahour_path(int32_t hour_id)
     snprintf(text, sizeof(text), "%d_sps/", SAMPLES_PER_SECOND);
     string_append(result, text);
     
-    strftime(text, sizeof(text) - 1, "%Y/", t); //
+    strftime(text, sizeof(text) - 1, "%Y/", t);
     string_append(result, text);
     string_append(result, months[t->tm_mon]);
 
     strftime(text, sizeof(text) - 1, "/%d/%HH.dat", t);
+    string_append(result, text);
+
+    return result;
+}
+
+String *get_datahour_path_new(int32_t hour_id)
+{
+    String *result = string_create(MAIN_FOLDER);
+    if(result == NULL){
+        return NULL;
+    }
+    char text[128];
+    time_t now = hour_id * 60 * 60;
+    struct tm *t = localtime(&now);
+
+    snprintf(text, sizeof(text), "%d_sps/", SAMPLES_PER_SECOND);
+    string_append(result, text);
+    
+    strftime(text, sizeof(text) - 1, "%Y/", t);
+    string_append(result, text);
+    string_append(result, months[t->tm_mon]);
+
+    strftime(text, sizeof(text) - 1, "/%d/%HH", t);
+    string_append(result, text);
+
+    snprintf(text, sizeof(text), "_%d.dat", hour_id);
     string_append(result, text);
 
     return result;
@@ -213,16 +309,6 @@ void log_data(int64_t log_id, int32_t val)
     last_received_log_id = log_id;
 }
 
-bool datahour_exists(int32_t hour_id)
-{
-    String *path = get_datahour_path(hour_id);
-    struct stat st = { 0 };
-
-    bool result = stat(path->data, &st) != -1;
-    string_destroy(path);
-    return result;
-}
-
 void data_init(void)
 {
     datahours = list_create(sizeof(DataHour *));
@@ -237,48 +323,7 @@ void data_init(void)
         }
     }
 
-    int32_t hour_id_current = millis() / (1000 * 60 * 60);
-    for (int i = 0; i < PERMANENTLY_LOADED_HOURS; i++) {
-        String *path = get_datahour_path(hour_id_current);
-        printf("checking dataHour: %s, %d\n", path->data, datahour_exists(hour_id_current));
-
-        DataHour *dh = NULL;
-        FILE *file = fopen(path->data, "rb");
-        if (file == NULL) {
-            perror("fopen");
-            dh = datahour_create(hour_id_current);
-            printf("created blank DataHour %d\n", dh->hour_id);
-        } else {
-            dh = datahour_load(file);
-            fclose(file);
-        }
-
-        if (dh == NULL) {
-            dh = datahour_create(hour_id_current);
-        }
-
-        list_append(datahours, &dh);
-
-        string_destroy(path);
-        hour_id_current--;
-    }
-
     pthread_mutex_init(&data_lock, NULL);
-}
-
-int mkpath(char *file_path, mode_t mode)
-{
-    for (char *p = strchr(file_path + 1, '/'); p; p = strchr(p + 1, '/')) {
-        *p = '\0';
-        if (mkdir(file_path, mode) == -1) {
-            if (errno != EEXIST) {
-                *p = '/';
-                return -1;
-            }
-        }
-        *p = '/';
-    }
-    return 0;
 }
 
 void autosave()
@@ -289,38 +334,8 @@ void autosave()
     while (i < datahours->item_count) {
         DataHour *dh = *(DataHour **) list_get(datahours, i);
         if (dh->modified) {
-            String *file = get_datahour_path(dh->hour_id);
-            String *path = string_create(file->data);
-            memset(strrchr(path->data, '/') + 1, '\0', 1);
-
-            struct stat st = { 0 };
-
-            if (stat(path->data, &st) == -1) {
-                printf("creating %s\n", path->data);
-                if (mkpath(path->data, 0700) != 0) {
-                    perror("mkdir");
-                    string_destroy(file);
-                    string_destroy(path);
-                    return;
-                }
-            }
-
-            FILE *actual_file = fopen(file->data, "wb");
-            if (actual_file == NULL) {
-                perror("fopen");
-                string_destroy(file);
-                string_destroy(path);
-                return;
-            }
-
-            printf("saving to %s, %d\n", file->data, dh->hour_id);
-            datahour_save(dh, actual_file);
-
+            datahour_save(dh);
             count++;
-            dh->modified = false;
-            fclose(actual_file);
-            string_destroy(file);
-            string_destroy(path);
         }
         i++;
     }

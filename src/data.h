@@ -40,7 +40,7 @@ DataHour *datahour_create(int hour_id);
 
 void datahour_destroy(DataHour *datahour);
 
-bool datahour_save(DataHour *datahour, FILE *file);
+bool datahour_save(DataHour *dh);
 
 int32_t get_log(int64_t log_id);
 
@@ -50,7 +50,9 @@ void data_init(void);
 
 void data_destroy(void);
 
-String *get_datahour_path(int32_t hour_id);
+String *get_datahour_path_new(int32_t hour_id);
+
+String *get_datahour_path_old(int32_t hour_id);
 
 DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new);
 
