@@ -294,7 +294,7 @@ void log_data(int64_t log_id, int32_t val)
 {
     int32_t hour_id = get_hour_id(log_id);
     if(current_datahour == NULL || current_datahour->hour_id != hour_id){
-        current_datahour = get_datahour(hour_id, false, true);
+        current_datahour = get_datahour(hour_id, true, true);
         if (current_datahour == NULL) {
             printf("ERR: NULL\n");
             return;
