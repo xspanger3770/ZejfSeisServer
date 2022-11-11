@@ -138,14 +138,21 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new)
         }
         string_destroy(path);
     }
+    
     if (create_new && dh == NULL) {
         dh = datahour_create(hour_id);
         printf("+1 DH\n");
     }
+    
     if(dh == NULL) {
         return NULL;
     }
-    //printf("added %d %d, %p\n", hour_id, dh->hour_id, dh);
+    
+    if(dh->hour_id != hour_id){
+        printf("Fatal: Loaded DataHour id doesn't match! (wanted %d, got %d)\n", hour_id, dh->hour_id);
+        return NULL;
+    }
+
     list_append(datahours, &dh);
     last_datahour = dh;
     return dh;
