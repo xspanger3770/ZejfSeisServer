@@ -24,6 +24,7 @@
 #include "time_utils.h"
 #include "server.h"
 
+#define CALIBRATION_TRESHOLD 1500
 
 LogQueue *log_queue;
 pthread_mutex_t log_queue_lock;
@@ -44,7 +45,7 @@ int serial_init(void)
     }
 
     pthread_mutex_init(&log_queue_lock, NULL);
-    sem_init(&log_queue_semaphore,0,0);
+    sem_init(&log_queue_semaphore, 0, 0);
 
     return 0;
 }
@@ -160,7 +161,7 @@ void diff_control(int64_t diff, int shift)
         sum_diffs = 0;
 
         if(last_set){
-            if(calibrating && abs(avg_diff) < 500){
+            if(calibrating && abs(avg_diff) < CALIBRATION_TRESHOLD){
                 calibrating = false;
                 printf("calibration done\n");
             }
