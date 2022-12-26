@@ -111,12 +111,17 @@ volatile bool stress_running = false;
 
 void* stress(){
     stress_count = 0;
-    int64_t start = (millis() - 1000*60*60*24*10) / SAMPLE_TIME_MS;
-    int64_t end = millis()/SAMPLE_TIME_MS;
+    int64_t start = (1663279200000l) / SAMPLE_TIME_MS;
+    int64_t end = (1672009200000l + 1000*60*60*24l)/SAMPLE_TIME_MS;
     pthread_mutex_lock(&data_lock);
     while(start<=end){
-        get_log(start);
-        start++;
+        int32_t hour_id = get_hour_id(start);
+        printf("%d\n", hour_id);
+        DataHour *dh = get_datahour(hour_id, true, false);
+        if (dh != NULL) {
+            dh->modified = true;
+        }
+        start+= (1000*60*60) / SAMPLE_TIME_MS;
     }
     pthread_mutex_unlock(&data_lock);
     pthread_exit(0);

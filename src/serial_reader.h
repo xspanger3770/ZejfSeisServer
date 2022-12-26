@@ -8,11 +8,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <semaphore.h>
 
 extern volatile bool serial_port_running;
 extern volatile bool serial_port_needs_join;
 
 extern double last_avg_diff;
+
+extern sem_t log_queue_semaphore;
+extern pthread_mutex_t log_queue_lock;
 
 typedef struct log_t
 {
@@ -38,5 +42,7 @@ void *run_queue_thread();
 void queue_thread_end(void);
 
 void serial_reader_destroy(void);
+
+void next_log(int32_t value, int64_t log_id);
 
 #endif

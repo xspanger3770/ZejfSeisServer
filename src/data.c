@@ -81,7 +81,7 @@ bool datahour_save(DataHour *dh)
         return false;
     }
 
-    String *file = get_datahour_path_new(dh->hour_id);
+    String *file = get_datahour_path_newest(dh->hour_id);
     String *path = string_create(file->data);
     memset(strrchr(path->data, '/') + 1, '\0', 1);
 
@@ -175,7 +175,7 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new)
     bool modified = false;
     
     if(load_from_file){
-        String* path = get_datahour_path_new(hour_id);
+        String* path = get_datahour_path_newest(hour_id);
         if(path == NULL){
             return NULL;
         }
@@ -184,22 +184,8 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new)
             printf("load %s\n", path->data);
             dh = datahour_load(file);
             fclose(file);
-        }else{
-            // TRY TO CONVERT
+        } else {
             perror(path->data);
-            String* path_old = get_datahour_path_old(hour_id);
-            if(path_old == NULL){
-                return NULL;
-            }
-            FILE* file_old = fopen(path_old->data, "rb");
-            if(file_old != NULL){
-                printf("Converting %s to %s\n", path_old->data, path->data);
-                dh = datahour_load(file_old);
-                modified = true;
-                create_new = true;
-                fclose(file_old);
-            }
-            string_destroy(path_old);
         }
         string_destroy(path);
     }
@@ -274,6 +260,32 @@ String *get_datahour_path_new(int32_t hour_id)
     string_append(result, text);
 
     snprintf(text, sizeof(text), "_%d.dat", hour_id);
+    string_append(result, text);
+
+    return result;
+}
+
+String *get_datahour_path_newest(int32_t hour_id)
+{
+    String *result = string_create(MAIN_FOLDER);
+    if(result == NULL){
+        return NULL;
+    }
+    char text[128];
+    time_t now = hour_id * 60 * 60;
+    struct tm *t = localtime(&now);
+
+    snprintf(text, sizeof(text), "%d_sps/", SAMPLES_PER_SECOND);
+    string_append(result, text);
+    
+    strftime(text, sizeof(text) - 1, "%Y/", t);
+    string_append(result, text);
+    string_append(result, months[t->tm_mon]);
+
+    strftime(text, sizeof(text) - 1, "/%d/%HH", t);
+    string_append(result, text);
+
+    snprintf(text, sizeof(text), "_%d.cs4", hour_id);
     string_append(result, text);
 
     return result;

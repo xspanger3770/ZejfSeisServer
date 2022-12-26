@@ -52,6 +52,8 @@ void data_destroy(void);
 
 String *get_datahour_path_new(int32_t hour_id);
 
+String *get_datahour_path_newest(int32_t hour_id);
+
 String *get_datahour_path_old(int32_t hour_id);
 
 DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new);

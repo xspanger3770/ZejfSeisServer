@@ -65,7 +65,6 @@ void next_log(int32_t value, int64_t log_id)
 
     last_log_id = log_id;
 
-    //printf("Queue thread notified for log gap: %ld, val=%d, head=%ld, tail=%ld\n", gap, value, log_queue->head, log_queue->tail);
     log_queue->logs[log_queue->head].log_id = log_id;
     log_queue->logs[log_queue->head].val = value;
 

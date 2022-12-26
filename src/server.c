@@ -13,6 +13,7 @@
 
 #include <signal.h>
 
+#include "serial_reader.h"
 #include "my_string.h"
 #include "scheduler.h"
 #include "server.h"
@@ -85,7 +86,14 @@ void process_client_command(ServerClient* client, char* command)
             register_request(client, get_first_log_id(hour_id), get_first_log_id(hour_id+1)-1);
         }
     } else if (strcmp(command, "senddata\n") == 0) {
-        printf("Send data command received\n");
+        int32_t value = (int32_t)read_64(client->file);
+        int64_t log_id = read_64(client->file);
+
+        pthread_mutex_lock(&log_queue_lock);
+        next_log(value, log_id);
+        pthread_mutex_unlock(&log_queue_lock);
+        
+        sem_post(&log_queue_semaphore);
     } else {
         printf("client #%ld received unknown command '%s'\n", client->id, command);
     }
