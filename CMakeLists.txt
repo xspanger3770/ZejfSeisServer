@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 # Project configuration
 project(zejfcseis)
 file(GLOB SOURCES "src/*.c")
-set(ZEJFCSEIS_VERSION "1.3.1")
+set(ZEJFCSEIS_VERSION "1.4.0")
 set(EXECUTABLE zejfcseis_${ZEJFCSEIS_VERSION})
 
 ##set(ALL_FLAGS "-g -pthread -std=gnu99 -Wall -Wextra")

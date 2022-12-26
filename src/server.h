@@ -1,6 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <semaphore.h>

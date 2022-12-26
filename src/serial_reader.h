@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistd.h>
 
 extern volatile bool serial_port_running;
 extern volatile bool serial_port_needs_join;

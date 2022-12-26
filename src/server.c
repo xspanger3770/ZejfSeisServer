@@ -84,6 +84,8 @@ void process_client_command(ServerClient* client, char* command)
         if(dh != NULL && dh->sample_count!=sample_count){
             register_request(client, get_first_log_id(hour_id), get_first_log_id(hour_id+1)-1);
         }
+    } else if (strcmp(command, "senddata\n") == 0) {
+        printf("Send data command received\n");
     } else {
         printf("client #%ld received unknown command '%s'\n", client->id, command);
     }
