@@ -36,7 +36,7 @@ void server_init(){
     signal(SIGPIPE, SIG_IGN);
 }
 
-void register_request(ServerClient* client,int64_t first_log_id,  int64_t last_log_id){
+void register_request(ServerClient* client, int64_t first_log_id, int64_t last_log_id){
     printf("registering DataRequest from %ld to %ld\n", first_log_id, last_log_id);
     if(last_log_id < first_log_id){
         printf("invalid request\n");
@@ -52,12 +52,15 @@ void register_request(ServerClient* client,int64_t first_log_id,  int64_t last_l
 
     if((client->requests_head + 1) % DATA_REQUEST_BUFFER == client->requests_tail){
         pthread_mutex_unlock(&client->data_requests_mutex);
+        printf("ERROR: maximum number of DataRequests reached for client #%ld\n", client->id);
         return;
     }
 
+    printf("HEAD %d, TAIL %d, MAX = %d\n", client->requests_head, client->requests_tail, DATA_REQUEST_BUFFER);
+
     client->data_requests[client->requests_head].first_log_id = first_log_id;
     client->data_requests[client->requests_head].last_log_id = last_log_id;
-    client->requests_head++;
+    client->requests_head = (client->requests_head + 1) % DATA_REQUEST_BUFFER;
     pthread_mutex_unlock(&client->data_requests_mutex);
 
     sem_post(&client->output_semaphore);

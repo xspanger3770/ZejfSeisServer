@@ -11,7 +11,7 @@
 
 #define DATA_REQUEST_BUFFER 128
 #define DATA_REQUEST_MAX_LENGTH_HOURS 24
-#define DATA_REQUEST_CHUNK_SIZE_MINUTES 4
+#define DATA_REQUEST_CHUNK_SIZE_MINUTES 15
 
 extern volatile bool server_running;
 extern volatile bool server_needs_join;

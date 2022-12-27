@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 // Linux headers
 #include <errno.h> // Error integer and strerror() function
@@ -13,7 +14,6 @@
 #include <unistd.h>  // write(), read(), close()
 
 #include <pthread.h>
-
 
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -160,7 +160,7 @@ void diff_control(int64_t diff, int shift)
         sum_diffs = 0;
 
         if(last_set){
-            if(calibrating && abs(avg_diff) < CALIBRATION_TRESHOLD){
+            if(calibrating && fabs(avg_diff) < CALIBRATION_TRESHOLD){
                 calibrating = false;
                 printf("calibration done\n");
             }

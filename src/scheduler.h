@@ -3,7 +3,7 @@
 
 #include "my_string.h"
 
-#define ZEJFCSEIS_VERSION "1.4.0"
+#define ZEJFCSEIS_VERSION "1.4.1"
 #define COMPATIBILITY_VERSION 4
 
 typedef struct options_t {
