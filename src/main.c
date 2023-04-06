@@ -9,7 +9,14 @@
 
 void print_usage(void)
 {
-    printf("Usage: -s <serial port> -i <ip address> -p <port number>\n");
+    printf("Usage: -s <serial port> -i <ip address> -p <port number> -r <sample rate>\n");
+}
+
+void print_sample_rate_usage(){
+    printf("Sample rate is selected like this:\n");
+    for(int i = 0; i < 5; i++){
+        printf("%d: %dHz\n", i, SAMPLE_RATES[i]);
+    }
 }
 
 int main(int argc, char *argv[])
@@ -49,14 +56,14 @@ int main(int argc, char *argv[])
     }
 
     int sample_rate_id = -1;
-    for(int i = 0; i < 5; i++){
-        if(SAMPLE_RATES[i] == sample_rate){
+    for (int i = 0; i < 5; i++) {
+        if (SAMPLE_RATES[i] == sample_rate) {
             sample_rate_id = i;
         }
     }
 
-    if(sample_rate_id == -1){
-        printf("Sample rate not supported: %d\n", sample_rate);
+    if (sample_rate_id == -1) {
+        print_sample_rate_usage();
         exit(1);
     }
 
