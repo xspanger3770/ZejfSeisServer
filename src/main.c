@@ -13,7 +13,7 @@ void print_usage(void)
 }
 
 void print_sample_rate_usage(){
-    printf("Sample rate is selected like this:\n");
+    printf("Supported sample rates:\n");
     for(int i = 0; i < 5; i++){
         printf("%d: %dHz\n", i, SAMPLE_RATES[i]);
     }
