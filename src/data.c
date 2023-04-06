@@ -107,9 +107,10 @@ bool datahour_save(DataHour *dh)
 
     printf("saving to %s, %d\n", file->data, dh->hour_id);
 
-    bool result = fwrite(dh, datahour_get_size(), 1, actual_file) == 1;
-
-    dh->modified = false;
+    bool result;
+    if((result = (fwrite(dh, datahour_get_size(), 1, actual_file) == 1))){
+        dh->modified = false;
+    }
 
     fclose(actual_file);
     string_destroy(file);
