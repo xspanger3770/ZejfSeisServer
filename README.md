@@ -6,6 +6,8 @@ Secondly, ZejfCSeis opens a TCP socket so that remote clients can connect to it 
 
 # How to run ZejfCSeis
 
+**__Tutorial not ready yet!__**
+
 If you want to try this project yourself, firstly you will need to setup the Arduino and the seismometer itself. Tutorial can be found here: https://github.com/xspanger3770/ZejfCSeis/tree/main/arduino
 
 After that, the easiest way to get ZejfCSeis is to clone this repository locally. 
