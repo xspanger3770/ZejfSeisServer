@@ -32,7 +32,7 @@ void open_port() {
         pthread_join(serial_reader_thread, NULL);
         serial_port_needs_join = false;
     }
-    pthread_create(&serial_reader_thread, NULL, (void *) &run_serial, options->serial->data);
+    pthread_create(&serial_reader_thread, NULL, run_serial, options->serial->data);
 }
 
 void close_port() {
@@ -60,7 +60,7 @@ void open_server() {
         pthread_join(server_thread, NULL);
         server_needs_join = false;
     }
-    pthread_create(&server_thread, NULL, (void *) &server_run, options);
+    pthread_create(&server_thread, NULL, server_run, options);
 }
 
 void close_server() {
@@ -151,7 +151,7 @@ bool process_command(char *line) {
         stress_running = true;
         pthread_t stress_thread;
         int64_t a = millis();
-        pthread_create(&stress_thread, NULL, (void *) &stress, NULL);
+        pthread_create(&stress_thread, NULL, stress, NULL);
         pthread_join(stress_thread, NULL);
         printf("done: %ldms\n", millis() - a);
     } else if (strcmp(line, "resetstats\n") == 0) {
@@ -196,10 +196,10 @@ void run_threads(Options *x) {
 
     // run stuff
 
-    pthread_create(&log_queue_thread, NULL, (void *) &run_queue_thread, NULL);
+    pthread_create(&log_queue_thread, NULL, run_queue_thread, NULL);
     open_port();
-    pthread_create(&data_manager_thread, NULL, (void *) &run_data_manager, NULL);
-    pthread_create(&server_watchdog_thread, NULL, (void *) &run_server_watchdog, NULL);
+    pthread_create(&data_manager_thread, NULL, run_data_manager, NULL);
+    pthread_create(&server_watchdog_thread, NULL, run_server_watchdog, NULL);
     open_server();
 
     command_line();

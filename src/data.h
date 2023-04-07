@@ -36,7 +36,7 @@ typedef struct datahour_t
 
 size_t datahour_get_size();
 
-DataHour *datahour_create(int hour_id);
+DataHour *datahour_create(int32_t hour_id);
 
 void datahour_destroy(DataHour *datahour);
 

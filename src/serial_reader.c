@@ -325,12 +325,14 @@ void run_reader(int serial_port) {
 
 end:
 
+    printf("Serial port closed!\n");
     ZEJF_DEBUG(0, "serial reader thread finish\n");
     serial_port_running = false;
     pthread_exit(0);
 }
 
-int run_serial(char *serial) {
+void* run_serial(void *arg) {
+    char* serial = (char*) arg;
     serial_port_needs_join = true;
     serial_port_running = true;
     ZEJF_DEBUG(0, "serial reader thread start\n");

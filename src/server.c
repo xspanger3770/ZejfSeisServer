@@ -347,8 +347,8 @@ void client_connect(int socket) {
 
     pthread_mutex_init(&client->data_requests_mutex, NULL);
 
-    pthread_create(&client->input_thread, NULL, (void *) &run_input_thread, client);
-    pthread_create(&client->output_thread, NULL, (void *) &run_output_thread, client);
+    pthread_create(&client->input_thread, NULL, run_input_thread, client);
+    pthread_create(&client->output_thread, NULL, run_output_thread, client);
 
     pthread_mutex_lock(&clients_lock);
     list_append(clients, &client);

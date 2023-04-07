@@ -35,7 +35,7 @@ extern LogQueue *log_queue;
 
 int serial_init(void);
 
-int run_serial(char *serial);
+void* run_serial(void *arg);
 
 void *run_queue_thread();
 
