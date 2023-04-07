@@ -85,7 +85,7 @@ bool datahour_save(DataHour *dh) {
     struct stat st = { 0 };
 
     if (stat(path->data, &st) == -1) {
-        ZEJF_DEBUG(1, "creating %s\n", path->data);
+        ZEJF_DEBUG(1, "Creating %s\n", path->data);
         if (mkpath(path->data, 0700) != 0) {
             perror("mkdir");
             string_destroy(file);
@@ -102,7 +102,7 @@ bool datahour_save(DataHour *dh) {
         return false;
     }
 
-    ZEJF_DEBUG(1, "saving to %s, %d\n", file->data, dh->hour_id);
+    ZEJF_DEBUG(1, "Saving to %s, %d\n", file->data, dh->hour_id);
 
     bool result;
     if ((result = (fwrite(dh, datahour_get_size(), 1, actual_file) == 1))) {

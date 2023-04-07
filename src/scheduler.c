@@ -24,12 +24,12 @@ Options *options;
 Statistics statistics = { 0 };
 
 void print_help(void) {
-    printf("todo help page\n\n");
+    printf("TODO help page\n\n");
 }
 
 void open_port() {
     if (serial_port_running) {
-        printf("serial port already running!\n");
+        printf("Serial port already running!\n");
         return;
     }
     if (serial_port_needs_join) {
@@ -45,19 +45,19 @@ void close_port() {
         serial_port_needs_join = false;
     }
     if (!serial_port_running) {
-        printf("serial port not running!\n");
+        printf("Serial port not running!\n");
         return;
     }
     pthread_cancel(serial_reader_thread);
     pthread_join(serial_reader_thread, NULL);
     serial_port_needs_join = false;
     serial_port_running = false;
-    printf("joined with serial reader thread\n");
+    ZEJF_DEBUG(1, "joined with serial reader thread\n");
 }
 
 void open_server() {
     if (server_running) {
-        printf("server already running!\n");
+        printf("Server already running!\n");
         return;
     }
     if (server_needs_join) {
@@ -73,7 +73,7 @@ void close_server() {
         server_needs_join = false;
     }
     if (!server_running) {
-        printf("server not running!\n");
+        printf("Server not running!\n");
         return;
     }
     pthread_cancel(server_thread);
@@ -81,7 +81,7 @@ void close_server() {
     server_close();
     server_needs_join = false;
     server_running = false;
-    printf("joined with server thread\n");
+    ZEJF_DEBUG(1, "Joined with server thread\n");
 }
 
 void print_info() {
@@ -154,13 +154,13 @@ bool process_command(char *line) {
         statistics.queue_max_length = 0;
         printf("statistics reset");
     } else {
-        printf("unknown action: %s", line);
+        printf("Unknown action: %s", line);
     }
     return false;
 }
 
 void command_line() {
-    printf("command line active\n");
+    ZEJF_DEBUG(0, "command line active\n");
     size_t len = 0;
     ssize_t lineSize = 0;
     while (true) {
@@ -205,25 +205,25 @@ void zejfcseis_exit(void) {
     close_server();
     pthread_cancel(server_watchdog_thread);
     pthread_join(server_watchdog_thread, NULL);
-    printf("joined with server watchdog thread\n");
+    ZEJF_DEBUG(0, "joined with server watchdog thread\n");
 
     server_destroy();
-    printf("server destroyed.\n");
+    ZEJF_DEBUG(0, "server destroyed.\n");
     close_port();
-    printf("port closed\n");
+    ZEJF_DEBUG(0, "port closed\n");
     queue_thread_end();
-    printf("queue Thread end sent\n");
+    ZEJF_DEBUG(0, "queue Thread end sent\n");
 
     pthread_cancel(log_queue_thread);
     pthread_join(log_queue_thread, NULL);
-    printf("joined with queue thread\n");
+    ZEJF_DEBUG(0, "joined with queue thread\n");
 
     pthread_cancel(data_manager_thread);
     pthread_join(data_manager_thread, NULL);
 
     serial_reader_destroy();
-    printf("serial reader destroyed\n");
+    ZEJF_DEBUG(0, "serial reader destroyed\n");
 
     data_destroy();
-    printf("joined with data manager thread\n");
+    ZEJF_DEBUG(0, "joined with data manager thread\n");
 }
