@@ -209,8 +209,7 @@ void next_sample(int shift, int log_num, int32_t value) {
     int64_t time = micros();
     if (first_log_id == -1) {
         first_log_id = time / (1000 * SAMPLE_TIME_MS) + 1;
-        int64_t extra_micros = first_log_id * 1000 * SAMPLE_TIME_MS - time;
-        ZEJF_DEBUG(1, "calibrating %ld us\n", extra_micros);
+        ZEJF_DEBUG(1, "calibrating %ld us\n", first_log_id * 1000 * SAMPLE_TIME_MS - time);
         first_log_num = log_num;
     } else {
         if (log_num < last_log_num) { // log num overflow

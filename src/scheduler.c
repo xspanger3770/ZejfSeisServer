@@ -186,8 +186,8 @@ void command_line() {
     }
 }
 
-void run_threads(Options *x) {
-    options = x;
+void run_threads(Options *opts) {
+    options = opts;
 
     // init
     data_init();

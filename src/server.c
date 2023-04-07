@@ -388,7 +388,7 @@ void *server_run(void *args) {
     server_running = true;
     next_client_id = 0;
     Options *options = (Options *) args;
-    printf("Opening server... %s:%d\n", options->ip_address->data, options->port);
+    printf("Opening server on %s:%d\n", options->ip_address->data, options->port);
 
     int new_socket;
     int opt = 1;
