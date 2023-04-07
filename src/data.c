@@ -13,6 +13,7 @@
 #include "data.h"
 #include "my_string.h"
 #include "time_utils.h"
+#include "scheduler.h"
 
 const int SAMPLE_RATES[5] = { 20, 40, 60, 100, 200 };
 int SAMPLES_PER_SECOND;
@@ -84,7 +85,7 @@ bool datahour_save(DataHour *dh) {
     struct stat st = { 0 };
 
     if (stat(path->data, &st) == -1) {
-        printf("creating %s\n", path->data);
+        ZEJF_DEBUG(1, "creating %s\n", path->data);
         if (mkpath(path->data, 0700) != 0) {
             perror("mkdir");
             string_destroy(file);
@@ -101,7 +102,7 @@ bool datahour_save(DataHour *dh) {
         return false;
     }
 
-    printf("saving to %s, %d\n", file->data, dh->hour_id);
+    ZEJF_DEBUG(1, "saving to %s, %d\n", file->data, dh->hour_id);
 
     bool result;
     if ((result = (fwrite(dh, datahour_get_size(), 1, actual_file) == 1))) {
@@ -130,7 +131,7 @@ DataHour *datahour_load(FILE *file) {
         if (errno != 0) {
             perror("fread");
         } else {
-            printf("Read failed\n");
+            ZEJF_DEBUG(1, "Read failed\n");
         }
         free(datahour);
         return NULL;
@@ -175,7 +176,7 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new) {
         }
         FILE *file = fopen(path->data, "rb");
         if (file != NULL) {
-            printf("load %s\n", path->data);
+            ZEJF_DEBUG(1, "Load %s\n", path->data);
             dh = datahour_load(file);
             fclose(file);
         } else {
@@ -185,14 +186,14 @@ DataHour *get_datahour(int32_t hour_id, bool load_from_file, bool create_new) {
     }
 
     if (dh != NULL && dh->hour_id != hour_id) {
-        printf("Fatal: Loaded DataHour id doesn't match! (wanted %d, got %d) [%d]\n", hour_id, dh->hour_id, create_new);
+        ZEJF_DEBUG(2, "Fatal: Loaded DataHour id doesn't match! (wanted %d, got %d) [%d]\n", hour_id, dh->hour_id, create_new);
         datahour_destroy(dh);
         dh = NULL;
     }
 
     if (create_new && dh == NULL) {
         dh = datahour_create(hour_id);
-        printf("+1 DH\n");
+        ZEJF_DEBUG(0, "+1 DH\n");
     }
 
     if (dh == NULL) {
@@ -297,7 +298,6 @@ void log_data(int64_t log_id, int32_t val) {
     if (current_datahour == NULL || current_datahour->hour_id != hour_id) {
         current_datahour = get_datahour(hour_id, true, true);
         if (current_datahour == NULL) {
-            printf("ERR: NULL\n");
             return;
         }
     }
@@ -316,7 +316,7 @@ void data_init(void) {
     struct stat st = { 0 };
 
     if (stat(MAIN_FOLDER, &st) == -1) {
-        printf("creating main directory...\n");
+        ZEJF_DEBUG(1, "creating main directory...\n");
         if (mkdir(MAIN_FOLDER, 0700) != 0) {
             perror("mkdir");
             return;
@@ -340,7 +340,7 @@ void autosave() {
     }
     pthread_mutex_unlock(&data_lock);
 
-    printf("saved %ld datahours\n", count);
+    ZEJF_DEBUG(1, "Saved %ld datahours\n", count);
 }
 
 size_t datahours_count() {
@@ -365,7 +365,7 @@ void cleanup() {
 
     pthread_mutex_unlock(&data_lock);
 
-    printf("destroyed %ld DataHours, current count: %ld\n", count, datahours->item_count);
+    ZEJF_DEBUG(0, "destroyed %ld DataHours, current count: %ld\n", count, datahours->item_count);
 }
 
 void data_destroy(void) {
