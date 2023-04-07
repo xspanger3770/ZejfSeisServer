@@ -23,10 +23,6 @@ pthread_t server_watchdog_thread;
 Options *options;
 Statistics statistics = { 0 };
 
-void print_help(void) {
-    printf("TODO help page\n\n");
-}
-
 void open_port() {
     if (serial_port_running) {
         printf("Serial port already running!\n");
@@ -88,9 +84,9 @@ void print_info() {
     printf("\n========= ZejfCSeis v%s ===========\n", ZEJFCSEIS_VERSION);
     printf("sample rate: %d sps\n", SAMPLES_PER_SECOND);
     printf("serial port: %s\n", options->serial->data);
-    printf("server ip: %s:%d\n", options->ip_address->data, options->port);
-    printf("\nserial port thread running: %d\n", serial_port_running);
-    printf("server running: %d\n", server_running);
+    printf("server address: %s:%d\n", options->ip_address->data, options->port);
+    printf("\nserial port open: %d\n", serial_port_running);
+    printf("server open: %d\n", server_running);
     printf("\nloaded datahours: %ld\n", datahours_count());
     printf("maximum queue length: %ld\n", statistics.queue_max_length);
     printf("gaps: %d\n", statistics.gaps);
@@ -121,6 +117,18 @@ void *stress() {
     }
     pthread_mutex_unlock(&data_lock);
     pthread_exit(0);
+}
+
+
+void print_help(void) {
+    printf("\n====== Available commands =======\n");
+    printf("help - show help\n");
+    printf("exit - close ZejfCSeis\n");
+    printf("info - print status and other technical info\n");
+    printf("openport - try to open serial port\n");
+    printf("closeport - close serial port\n");
+    printf("openserver - try to open TCP server\n");
+    printf("closeserver - close TCP server\n\n");
 }
 
 bool process_command(char *line) {
@@ -154,7 +162,7 @@ bool process_command(char *line) {
         statistics.queue_max_length = 0;
         printf("statistics reset");
     } else {
-        printf("Unknown action: %s", line);
+        printf("Unknown command: %s", line);
     }
     return false;
 }
@@ -201,6 +209,8 @@ void run_threads(Options *x) {
 
 void zejfcseis_exit(void) {
     // order is important
+
+    printf("Closing ZejfCSeis...\n");
 
     close_server();
     pthread_cancel(server_watchdog_thread);

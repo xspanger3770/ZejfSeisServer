@@ -345,6 +345,7 @@ int run_serial(char *serial) {
 
     // Read in existing settings, and handle any error
     if (tcgetattr(serial_port, &tty) != 0) {
+        printf("Unable to open serial port %s: %s\n", serial, strerror(errno));
         ZEJF_DEBUG(1, "error %i from tcgetattr: %s\n", errno, strerror(errno));
         serial_port_running = false;
         pthread_exit(0);
@@ -387,6 +388,7 @@ int run_serial(char *serial) {
 
     // Save tty settings, also checking for error
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
+        printf("Unable to open serial port %s: %s\n", serial, strerror(errno));
         ZEJF_DEBUG(1, "error %i from tcsetattr: %s\n", errno, strerror(errno));
         serial_port_running = false;
         pthread_exit(0);
