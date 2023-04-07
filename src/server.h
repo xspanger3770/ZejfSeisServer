@@ -1,10 +1,10 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <stdio.h>
-#include <stdbool.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 #define CLIENT_TIMEOUT_SEC 20
 #define REALTIME_MAX_GAP_MINUTES 5
@@ -16,17 +16,19 @@
 extern volatile bool server_running;
 extern volatile bool server_needs_join;
 
-typedef struct datarequest_t{
+typedef struct datarequest_t
+{
     int64_t first_log_id;
     int64_t last_log_id;
-}DataRequest;
+} DataRequest;
 
-typedef struct serverclient_t{
+typedef struct serverclient_t
+{
     int socket;
     bool connected;
     bool realtime;
     bool heartbeat_request;
-    FILE* file;
+    FILE *file;
     pthread_t input_thread;
     pthread_t output_thread;
 
@@ -41,14 +43,13 @@ typedef struct serverclient_t{
     int requests_head;
     int requests_tail;
     DataRequest data_requests[DATA_REQUEST_BUFFER];
-}ServerClient;
-
+} ServerClient;
 
 void server_init();
 
-void* server_run(void* arg);
+void *server_run(void *arg);
 
-void* run_server_watchdog();
+void *run_server_watchdog();
 
 void server_realtime_notify(void);
 

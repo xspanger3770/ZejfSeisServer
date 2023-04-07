@@ -4,8 +4,7 @@
 
 #include "my_string.h"
 
-String *string_empty()
-{
+String *string_empty() {
     String *str = malloc(sizeof(String));
     if (str == NULL) {
         perror("malloc");
@@ -22,8 +21,7 @@ String *string_empty()
     return str;
 }
 
-String *string_create(char *data)
-{
+String *string_create(char *data) {
     String *str = malloc(sizeof(String));
     if (str == NULL) {
         perror("malloc");
@@ -40,8 +38,7 @@ String *string_create(char *data)
     return str;
 }
 
-int string_append(String *str, char *data)
-{
+int string_append(String *str, char *data) {
     size_t previous_size = str->size;
     str->size += strlen(data);
     char *new_data = realloc(str->data, str->size * sizeof(char));
@@ -53,8 +50,7 @@ int string_append(String *str, char *data)
     return 0;
 }
 
-void string_destroy(String *str)
-{
+void string_destroy(String *str) {
     if (str == NULL) {
         return;
     }

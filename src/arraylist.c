@@ -4,8 +4,7 @@
 
 #include "arraylist.h"
 
-ArrayList *list_create(size_t item_size)
-{
+ArrayList *list_create(size_t item_size) {
     ArrayList *list = malloc(sizeof(ArrayList));
     if (list == NULL) {
         perror("malloc");
@@ -26,8 +25,7 @@ ArrayList *list_create(size_t item_size)
     return list;
 }
 
-bool list_append(ArrayList *list, void *item)
-{
+bool list_append(ArrayList *list, void *item) {
     if (list == NULL) {
         return false;
     }
@@ -47,8 +45,7 @@ bool list_append(ArrayList *list, void *item)
     return true;
 }
 
-void list_destroy(ArrayList *list, void(destructor)(void **))
-{
+void list_destroy(ArrayList *list, void(destructor)(void **)) {
     if (list == NULL) {
         return;
     }
@@ -61,8 +58,7 @@ void list_destroy(ArrayList *list, void(destructor)(void **))
     free(list);
 }
 
-void *list_get(ArrayList *list, size_t index)
-{
+void *list_get(ArrayList *list, size_t index) {
     if (list == NULL || index >= list->item_count) {
         return NULL;
     }
@@ -70,13 +66,11 @@ void *list_get(ArrayList *list, size_t index)
     return list->data + list->item_size * index;
 }
 
-inline bool list_is_empty(ArrayList *list)
-{
+inline bool list_is_empty(ArrayList *list) {
     return list->item_count == 0;
 }
 
-bool list_clear(ArrayList *list, void(destructor)(void **))
-{
+bool list_clear(ArrayList *list, void(destructor)(void **)) {
     if (list == NULL) {
         return false;
     }
@@ -96,8 +90,7 @@ bool list_clear(ArrayList *list, void(destructor)(void **))
     return true;
 }
 
-bool list_remove(ArrayList *list, size_t index, void(destructor)(void **))
-{
+bool list_remove(ArrayList *list, size_t index, void(destructor)(void **)) {
     if (list == NULL || index >= list->item_count) {
         return false;
     }
@@ -123,8 +116,7 @@ bool list_remove(ArrayList *list, size_t index, void(destructor)(void **))
     return true;
 }
 
-void *list_find(ArrayList *list, bool(comparator)(void **))
-{
+void *list_find(ArrayList *list, bool(comparator)(void **)) {
     for (size_t i = 0; i < list->item_count; i++) {
         void *item = list_get(list, i);
         if (comparator(item)) {

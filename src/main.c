@@ -7,20 +7,18 @@
 #include "scheduler.h"
 #include "serial_reader.h"
 
-void print_usage(void)
-{
+void print_usage(void) {
     printf("Usage: -s <serial port> -i <ip address> -p <port number> -r <sample rate>\n");
 }
 
-void print_sample_rate_usage(){
+void print_sample_rate_usage() {
     printf("Supported sample rates:\n");
-    for(int i = 0; i < 5; i++){
+    for (int i = 0; i < 5; i++) {
         printf("%d: %dHz\n", i, SAMPLE_RATES[i]);
     }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     char *serial = "/dev/ttyUSB0";
     char *ip = "0.0.0.0";
     int port = 6222;

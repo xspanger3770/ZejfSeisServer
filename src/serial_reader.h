@@ -5,10 +5,10 @@
 
 #define IGNORE_FIRST 50
 
+#include <semaphore.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <semaphore.h>
 
 extern volatile bool serial_port_running;
 extern volatile bool serial_port_needs_join;

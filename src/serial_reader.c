@@ -1,10 +1,10 @@
 #define _GNU_SOURCE
 
 // C library headers
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 // Linux headers
 #include <errno.h> // Error integer and strerror() function
@@ -21,8 +21,8 @@
 #include "data.h"
 #include "scheduler.h"
 #include "serial_reader.h"
-#include "time_utils.h"
 #include "server.h"
+#include "time_utils.h"
 
 #define CALIBRATION_TRESHOLD 1500
 
@@ -37,8 +37,7 @@ volatile bool serial_port_needs_join = false;
 
 int serial_port = -1;
 
-int serial_init(void)
-{
+int serial_init(void) {
     log_queue = calloc(1, sizeof(LogQueue));
     if (log_queue == NULL) {
         return 1;
@@ -52,9 +51,8 @@ int serial_init(void)
 
 int64_t last_log_id = -1;
 
-void next_log(int32_t value, int64_t log_id)
-{
-    if(last_log_id == -1){
+void next_log(int32_t value, int64_t log_id) {
+    if (last_log_id == -1) {
         last_log_id = log_id - 1;
     }
     int64_t gap = log_id - last_log_id;
@@ -77,13 +75,12 @@ void next_log(int32_t value, int64_t log_id)
     }
 }
 
-void *run_queue_thread()
-{
+void *run_queue_thread() {
     printf("QueueThread run\n");
     queue_thread_running = true;
     while (queue_thread_running) {
         sem_wait(&log_queue_semaphore);
-        
+
         if (!queue_thread_running) {
             break;
         }
@@ -95,7 +92,7 @@ void *run_queue_thread()
 
         pthread_mutex_unlock(&log_queue_lock);
 
-        if(head == tail){
+        if (head == tail) {
             continue;
         }
 
@@ -132,8 +129,7 @@ void *run_queue_thread()
     pthread_exit(0);
 }
 
-void queue_thread_end(void)
-{
+void queue_thread_end(void) {
     queue_thread_running = false;
     sem_post(&log_queue_semaphore);
 }
@@ -150,17 +146,16 @@ const char plus = '+';
 const char minus = '-';
 const char star = '*';
 
-void diff_control(int64_t diff, int shift)
-{
+void diff_control(int64_t diff, int shift) {
     count_diffs++;
     sum_diffs += diff;
-    if(count_diffs == SHIFT_CHECK){
-        double avg_diff = sum_diffs / (double)count_diffs;
+    if (count_diffs == SHIFT_CHECK) {
+        double avg_diff = sum_diffs / (double) count_diffs;
         count_diffs = 0;
         sum_diffs = 0;
 
-        if(last_set){
-            if(calibrating && fabs(avg_diff) < CALIBRATION_TRESHOLD){
+        if (last_set) {
+            if (calibrating && fabs(avg_diff) < CALIBRATION_TRESHOLD) {
                 calibrating = false;
                 printf("calibration done\n");
             }
@@ -169,36 +164,36 @@ void diff_control(int64_t diff, int shift)
             int shift_goal = (shift + (goal - change) / SHIFT_CHECK);
             int conf = (shift_goal - shift);
 
-            if(calibrating){
+            if (calibrating) {
                 conf *= 1.50;
             }
 
-            if(conf > 0){
-                for(int i = 0; i < conf / 3 + 1; i++){
-                    if(write(serial_port, &plus, 1) == -1){
+            if (conf > 0) {
+                for (int i = 0; i < conf / 3 + 1; i++) {
+                    if (write(serial_port, &plus, 1) == -1) {
                         perror("write");
                         return;
                     }
-                }   
+                }
             }
-            if(conf < 0){
-                for(int i = 0; i < -conf / 3 + 1; i++){
-                    if(write(serial_port, &minus, 1) == -1){
+            if (conf < 0) {
+                for (int i = 0; i < -conf / 3 + 1; i++) {
+                    if (write(serial_port, &minus, 1) == -1) {
                         perror("write");
                         return;
                     }
                 }
             }
 
-            printf("avg diff: %.5fms, changed by %.2fms, goal: %.2fms, shift: %d, target shift: %d\n",  avg_diff/1000.0, change/1000.0, goal / 1000.0, shift, shift_goal);
+            printf("avg diff: %.5fms, changed by %.2fms, goal: %.2fms, shift: %d, target shift: %d\n", avg_diff / 1000.0, change / 1000.0, goal / 1000.0, shift, shift_goal);
         }
 
         last_avg_diff = avg_diff;
-        if(!calibrating){
-            if(last_avg_diff > statistics.highest_avg_diff){
+        if (!calibrating) {
+            if (last_avg_diff > statistics.highest_avg_diff) {
                 statistics.highest_avg_diff = last_avg_diff;
             }
-            if(last_avg_diff < statistics.lowest_avg_diff){
+            if (last_avg_diff < statistics.lowest_avg_diff) {
                 statistics.lowest_avg_diff = last_avg_diff;
             }
         }
@@ -210,27 +205,27 @@ int64_t first_log_id = -1;
 int first_log_num;
 int last_log_num;
 
-void next_sample(int shift, int log_num, int32_t value){
+void next_sample(int shift, int log_num, int32_t value) {
     int64_t time = micros();
-    if(first_log_id == -1){
-        first_log_id = time / (1000*SAMPLE_TIME_MS)+1;
+    if (first_log_id == -1) {
+        first_log_id = time / (1000 * SAMPLE_TIME_MS) + 1;
         int64_t extra_micros = first_log_id * 1000 * SAMPLE_TIME_MS - time;
         printf("calibrating %ld us\n", extra_micros);
         first_log_num = log_num;
-    } else{
-        if(log_num < last_log_num){ // log num overflow
+    } else {
+        if (log_num < last_log_num) { // log num overflow
             first_log_id = first_log_id + (last_log_num - first_log_num) + 1;
             first_log_num = log_num;
-        }else if(log_num - last_log_num > 1){
+        } else if (log_num - last_log_num > 1) {
             statistics.arduino_gaps++;
             printf("ERR COMM GAP!\n");
         }
-        int64_t expected_time = (first_log_id + (log_num - first_log_num))*SAMPLE_TIME_MS * 1000;
+        int64_t expected_time = (first_log_id + (log_num - first_log_num)) * SAMPLE_TIME_MS * 1000;
         int64_t diff = time - expected_time;
         diff_control(diff, shift);
     }
 
-    if(!calibrating){
+    if (!calibrating) {
         pthread_mutex_lock(&log_queue_lock);
         next_log(value, first_log_id + (log_num - first_log_num));
         pthread_mutex_unlock(&log_queue_lock);
@@ -240,25 +235,25 @@ void next_sample(int shift, int log_num, int32_t value){
     last_log_num = log_num;
 }
 
-bool decode(char* buffer, bool ignore){
-    if(buffer[0] != 's'){
+bool decode(char *buffer, bool ignore) {
+    if (buffer[0] != 's') {
         return false;
     }
     char *v = strchr(buffer, 'v');
-    if(v == NULL){
+    if (v == NULL) {
         return false;
     }
     char *l = strchr(buffer, 'l');
-    if(l == NULL){
+    if (l == NULL) {
         return false;
     }
     memset(v, '\0', 1);
     memset(l, '\0', 1);
     int shift = atoi(buffer + 1);
     int log_num = atoi(l + 1);
-    int32_t value = atol(v+1);
+    int32_t value = atol(v + 1);
 
-    if(!ignore){
+    if (!ignore) {
         next_sample(shift, log_num, value);
     }
 
@@ -269,8 +264,7 @@ bool decode(char* buffer, bool ignore){
 #define LINE_BUFFER_SIZE 64
 #define IGNORE 10
 
-void run_reader(int serial_port)
-{
+void run_reader(int serial_port) {
     count_diffs = 0;
     sum_diffs = 0;
     first_log_id = -1;
@@ -283,61 +277,59 @@ void run_reader(int serial_port)
     msg[1] = '0' + options->sample_rate_id;
     printf("waiting for serial device\n");
     sleep(3);
-    if(write(serial_port, msg, 2) == -1){
+    if (write(serial_port, msg, 2) == -1) {
         perror("write");
         goto end;
     }
     printf("serial port running\n");
-   
+
     char buffer[BUFFER_SIZE];
     char line_buffer[LINE_BUFFER_SIZE];
     int ignore = 0;
     int line_buffer_ptr = 0;
 
-    while(true){
+    while (true) {
         ssize_t count = read(serial_port, buffer, BUFFER_SIZE);
-        if(ignore < IGNORE){
+        if (ignore < IGNORE) {
             ignore++;
-            if(count < 0){
+            if (count < 0) {
                 printf("Serial reader end, count < 0\n");
                 break;
             }
         } else {
-            if(count <= 0){
+            if (count <= 0) {
                 printf("Serial reader end, count <= 0\n");
                 break;
             }
         }
-        
-        for(ssize_t i = 0; i < count; i++){
+
+        for (ssize_t i = 0; i < count; i++) {
             line_buffer[line_buffer_ptr] = buffer[i];
             line_buffer_ptr++;
-            if(buffer[i] == '\n'){
-                line_buffer[line_buffer_ptr-1] = '\0';
+            if (buffer[i] == '\n') {
+                line_buffer[line_buffer_ptr - 1] = '\0';
                 pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-                if(!decode(line_buffer, ignore < IGNORE)){
+                if (!decode(line_buffer, ignore < IGNORE)) {
                     printf("Arduino: %s\n", line_buffer);
                 }
                 pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
                 line_buffer_ptr = 0;
             }
-            if(line_buffer_ptr == LINE_BUFFER_SIZE - 1){
+            if (line_buffer_ptr == LINE_BUFFER_SIZE - 1) {
                 printf("ERR SERIAL READER BUFF OVERFLOW\n");
                 line_buffer_ptr = 0;
             }
         }
-        
     }
 
-    end:
+end:
 
     printf("serial reader thread finish\n");
     serial_port_running = false;
     pthread_exit(0);
 }
 
-int run_serial(char *serial)
-{
+int run_serial(char *serial) {
     serial_port_needs_join = true;
     serial_port_running = true;
     printf("serial reader thread start\n");
@@ -385,7 +377,7 @@ int run_serial(char *serial)
     // (0x004) in output (NOT PRESENT ON LINUX)
 
     tty.c_cc[VTIME] = 100; // Wait for up to 1s (10 deciseconds), returning as soon
-                          // as any data is received.
+                           // as any data is received.
     tty.c_cc[VMIN] = 0;
 
     // Set in/out baud rate to be 38400
@@ -403,8 +395,7 @@ int run_serial(char *serial)
     pthread_exit(0);
 }
 
-void serial_reader_destroy(void)
-{
+void serial_reader_destroy(void) {
     pthread_mutex_destroy(&log_queue_lock);
     sem_destroy(&log_queue_semaphore);
     free(log_queue);
