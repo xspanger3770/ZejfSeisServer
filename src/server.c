@@ -13,6 +13,8 @@
 
 #include <signal.h>
 
+#include <errno.h>
+
 #include "arraylist.h"
 #include "com_utils.h"
 #include "data.h"
@@ -393,6 +395,7 @@ void *server_run(void *args) {
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        printf("Unable to open server: %s\n", strerror(errno));
         perror("socket failed");
         server_running = false;
         pthread_exit(0);
@@ -400,6 +403,7 @@ void *server_run(void *args) {
 
     // Forcefully attaching socket to the port
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+        printf("Unable to open server: %s\n", strerror(errno));
         perror("setsockopt");
         server_running = false;
         pthread_exit(0);
@@ -413,6 +417,7 @@ void *server_run(void *args) {
 
     // Forcefully attaching socket to the port 8080
     if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) < 0) {
+        printf("Unable to bind server: %s\n", strerror(errno));
         perror("bind failed");
         server_running = false;
         pthread_exit(0);
@@ -422,12 +427,14 @@ void *server_run(void *args) {
 
     while (true) {
         if (listen(server_fd, 3) < 0) {
+            printf("Server closed: %s\n", strerror(errno));
             perror("listen");
             server_running = false;
             pthread_exit(0);
         }
         ZEJF_DEBUG(0, "accept\n");
         if ((new_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) < 0) {
+            printf("Server closed: %s\n", strerror(errno));
             perror("accept");
             server_running = false;
             pthread_exit(0);
