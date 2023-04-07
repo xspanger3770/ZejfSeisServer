@@ -4,7 +4,10 @@ ZejfCSeis is a command line program written in C used to collect, store and broa
 
 Secondly, ZejfCSeis opens a TCP socket so that remote clients can connect to it and watch incoming data in real time as well as browsing historical data. This is achieved using the [ZejfSeis4](https://github.com/xspanger3770/ZejfSeis4) Java application:
 
-![screenshot1](https://user-images.githubusercontent.com/100421968/230572243-ad604679-4adf-420e-9f8f-30c36f75cf50.png)
+Realtime view     |  Browse data
+:-------------------------:|:-------------------------:
+![](https://user-images.githubusercontent.com/100421968/230660124-b87666fc-8b61-4f80-bf1b-5516df0aa2d0.png) | ![](https://user-images.githubusercontent.com/100421968/230572243-ad604679-4adf-420e-9f8f-30c36f75cf50.png)
+
 
 # How to run ZejfCSeis
 
