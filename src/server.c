@@ -403,7 +403,7 @@ void *server_run(void *args) {
 
     // Forcefully attaching socket to the port
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-        printf("Unable to open server: %s\n", strerror(errno));
+        printf("Unable to open port: %s\n", strerror(errno));
         perror("setsockopt");
         server_running = false;
         pthread_exit(0);

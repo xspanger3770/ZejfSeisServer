@@ -134,11 +134,11 @@ void queue_thread_end(void) {
     sem_post(&log_queue_semaphore);
 }
 
-int count_diffs;
-int64_t sum_diffs;
-double last_avg_diff;
-bool last_set;
-bool calibrating;
+unsigned int count_diffs = 0;
+int64_t sum_diffs = 0;
+double last_avg_diff = 0;
+bool last_set = false;
+bool calibrating = false;
 
 #define SHIFT_CHECK 80
 
@@ -157,8 +157,9 @@ void diff_control(int64_t diff, int shift) {
         if (last_set) {
             if (calibrating && fabs(avg_diff) < CALIBRATION_TRESHOLD) {
                 calibrating = false;
-                ZEJF_DEBUG(0, "calibration done\n");
+                printf("Calibration done, you can now see the data.\n");
             }
+
             double change = avg_diff - last_avg_diff;
             double goal = calibrating ? -avg_diff / 4.0 : -avg_diff / 5.0;
             int shift_goal = (shift + (goal - change) / SHIFT_CHECK);
@@ -202,23 +203,27 @@ void diff_control(int64_t diff, int shift) {
 }
 
 int64_t first_log_id = -1;
-int first_log_num;
-int last_log_num;
+int first_log_num = 0;
+int last_log_num = 0;
 
 void next_sample(int shift, int log_num, int32_t value) {
     int64_t time = micros();
     if (first_log_id == -1) {
         first_log_id = time / (1000 * SAMPLE_TIME_MS) + 1;
         ZEJF_DEBUG(1, "calibrating %ld us\n", first_log_id * 1000 * SAMPLE_TIME_MS - time);
+        printf("Calibrating, please wait...\n");
         first_log_num = log_num;
     } else {
-        if (log_num < last_log_num) { // log num overflow
+        if (log_num == last_log_num) {
+            return;
+        } else if (log_num < last_log_num) { // log num overflow
             first_log_id = first_log_id + (last_log_num - first_log_num) + 1;
             first_log_num = log_num;
         } else if (log_num - last_log_num > 1) {
             statistics.arduino_gaps++;
             ZEJF_DEBUG(2, "ERR COMM GAP!\n");
         }
+
         int64_t expected_time = (first_log_id + (log_num - first_log_num)) * SAMPLE_TIME_MS * 1000;
         int64_t diff = time - expected_time;
         diff_control(diff, shift);
@@ -234,7 +239,7 @@ void next_sample(int shift, int log_num, int32_t value) {
     last_log_num = log_num;
 }
 
-bool decode(char *buffer, bool ignore) {
+bool decode(char *buffer) {
     if (buffer[0] != 's') {
         return false;
     }
@@ -252,9 +257,7 @@ bool decode(char *buffer, bool ignore) {
     int log_num = atoi(l + 1);
     int32_t value = atol(v + 1);
 
-    if (!ignore) {
-        next_sample(shift, log_num, value);
-    }
+    next_sample(shift, log_num, value);
 
     return true;
 }
@@ -263,7 +266,7 @@ bool decode(char *buffer, bool ignore) {
 #define LINE_BUFFER_SIZE 64
 #define IGNORE 10
 
-void run_reader(int serial_port) {
+void run_reader(char *serial, int serial_port) {
     count_diffs = 0;
     sum_diffs = 0;
     first_log_id = -1;
@@ -280,36 +283,33 @@ void run_reader(int serial_port) {
         perror("write");
         goto end;
     }
-    
+
     printf("Serial port connected!\n");
 
     char buffer[BUFFER_SIZE];
     char line_buffer[LINE_BUFFER_SIZE];
-    int ignore = 0;
     int line_buffer_ptr = 0;
+
+    struct stat stats;
 
     while (true) {
         ssize_t count = read(serial_port, buffer, BUFFER_SIZE);
-        if (ignore < IGNORE) {
-            ignore++;
-            if (count < 0) {
-                ZEJF_DEBUG(0, "Serial reader end, count < 0\n");
-                break;
-            }
-        } else {
-            if (count <= 0) {
-                ZEJF_DEBUG(0, "Serial reader end, count <= 0\n");
+        
+        // maybe EOF
+        if (count <= 0) {
+            if (stat(serial, &stats) == -1) {
                 break;
             }
         }
 
+        // todo this is incorrect
         for (ssize_t i = 0; i < count; i++) {
             line_buffer[line_buffer_ptr] = buffer[i];
             line_buffer_ptr++;
             if (buffer[i] == '\n') {
                 line_buffer[line_buffer_ptr - 1] = '\0';
                 pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-                if (!decode(line_buffer, ignore < IGNORE)) {
+                if (!decode(line_buffer)) {
                     ZEJF_DEBUG(0, "Arduino: %s\n", line_buffer);
                 }
                 pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -330,8 +330,8 @@ end:
     pthread_exit(0);
 }
 
-void* run_serial(void *arg) {
-    char* serial = (char*) arg;
+void *run_serial(void *arg) {
+    char *serial = (char *) arg;
     serial_port_needs_join = true;
     serial_port_running = true;
     ZEJF_DEBUG(0, "serial reader thread start\n");
@@ -395,7 +395,7 @@ void* run_serial(void *arg) {
         pthread_exit(0);
     }
 
-    run_reader(serial_port);
+    run_reader(serial, serial_port);
     pthread_exit(0);
 }
 
