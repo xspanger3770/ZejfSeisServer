@@ -6,7 +6,7 @@ Secondly, ZejfCSeis opens a TCP socket so that remote clients can connect to it 
 
 Realtime view     |  Browse data
 :-------------------------:|:-------------------------:
-![](https://user-images.githubusercontent.com/100421968/230660124-b87666fc-8b61-4f80-bf1b-5516df0aa2d0.png) | ![](https://user-images.githubusercontent.com/100421968/230572243-ad604679-4adf-420e-9f8f-30c36f75cf50.png)
+![](https://user-images.githubusercontent.com/100421968/230724558-52bbcdf1-1ace-4fac-b23d-15c901bb1f0a.png) | ![](https://user-images.githubusercontent.com/100421968/230572243-ad604679-4adf-420e-9f8f-30c36f75cf50.png)
 
 
 # How to run ZejfCSeis
