@@ -157,7 +157,7 @@ void diff_control(int64_t diff, int shift) {
         if (last_set) {
             if (calibrating && fabs(avg_diff) < CALIBRATION_TRESHOLD) {
                 calibrating = false;
-                ZEJF_DEBUG(0, "calibration done\n");
+                printf("Calibration done, you can now see the data.\n");
             }
 
             double change = avg_diff - last_avg_diff;
@@ -211,6 +211,7 @@ void next_sample(int shift, int log_num, int32_t value) {
     if (first_log_id == -1) {
         first_log_id = time / (1000 * SAMPLE_TIME_MS) + 1;
         ZEJF_DEBUG(1, "calibrating %ld us\n", first_log_id * 1000 * SAMPLE_TIME_MS - time);
+        printf("Calibrating, please wait...\n");
         first_log_num = log_num;
     } else {
         if (log_num == last_log_num) {
@@ -299,11 +300,6 @@ void run_reader(char *serial, int serial_port) {
             if (stat(serial, &stats) == -1) {
                 break;
             }
-        }
-
-        // this happens when arduino buffer fills
-        if (count == BUFFER_SIZE) {
-            continue;
         }
 
         // todo this is incorrect
