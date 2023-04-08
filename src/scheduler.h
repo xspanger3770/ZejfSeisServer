@@ -3,7 +3,7 @@
 
 #include "my_string.h"
 
-#define ZEJFCSEIS_VERSION "1.4.1"
+#define ZEJFCSEIS_VERSION "1.5.0"
 #define COMPATIBILITY_VERSION 4
 
 #define ZEJF_DEBUG_NORMAL 0
