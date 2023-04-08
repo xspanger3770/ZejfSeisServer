@@ -149,7 +149,6 @@ const char star = '*';
 void diff_control(int64_t diff, int shift) {
     count_diffs++;
     sum_diffs += diff;
-    printf("%d\n", count_diffs);
     if (count_diffs == SHIFT_CHECK) {
         double avg_diff = sum_diffs / (double) count_diffs;
         count_diffs = 0;
@@ -214,7 +213,9 @@ void next_sample(int shift, int log_num, int32_t value) {
         ZEJF_DEBUG(1, "calibrating %ld us\n", first_log_id * 1000 * SAMPLE_TIME_MS - time);
         first_log_num = log_num;
     } else {
-        if (log_num < last_log_num) { // log num overflow
+        if (log_num == last_log_num) {
+            return;
+        } else if (log_num < last_log_num) { // log num overflow
             first_log_id = first_log_id + (last_log_num - first_log_num) + 1;
             first_log_num = log_num;
         } else if (log_num - last_log_num > 1) {
@@ -237,8 +238,7 @@ void next_sample(int shift, int log_num, int32_t value) {
     last_log_num = log_num;
 }
 
-bool decode(char *buffer, bool ignore) {
-    printf("decode %s\n", buffer);
+bool decode(char *buffer) {
     if (buffer[0] != 's') {
         return false;
     }
@@ -256,9 +256,7 @@ bool decode(char *buffer, bool ignore) {
     int log_num = atoi(l + 1);
     int32_t value = atol(v + 1);
 
-    if (!ignore) {
-        next_sample(shift, log_num, value);
-    }
+    next_sample(shift, log_num, value);
 
     return true;
 }
@@ -267,7 +265,7 @@ bool decode(char *buffer, bool ignore) {
 #define LINE_BUFFER_SIZE 64
 #define IGNORE 10
 
-void run_reader(int serial_port) {
+void run_reader(char *serial, int serial_port) {
     count_diffs = 0;
     sum_diffs = 0;
     first_log_id = -1;
@@ -284,30 +282,29 @@ void run_reader(int serial_port) {
         perror("write");
         goto end;
     }
-    
+
     printf("Serial port connected!\n");
 
     char buffer[BUFFER_SIZE];
     char line_buffer[LINE_BUFFER_SIZE];
-    int ignore = 0;
     int line_buffer_ptr = 0;
+
+    struct stat stats;
 
     while (true) {
         ssize_t count = read(serial_port, buffer, BUFFER_SIZE);
-        if (ignore < IGNORE) {
-            ignore++;
-            if (count < 0) {
-                ZEJF_DEBUG(0, "Serial reader end, count < 0\n");
-                break;
-            }
-        } else {
-            if (count <= 0) {
-                ZEJF_DEBUG(0, "Serial reader end, count <= 0\n");
+        
+        // maybe EOF
+        if (count <= 0) {
+            if (stat(serial, &stats) == -1) {
                 break;
             }
         }
 
-        printf("read %d\n", count);
+        // this happens when arduino buffer fills
+        if (count == BUFFER_SIZE) {
+            continue;
+        }
 
         // todo this is incorrect
         for (ssize_t i = 0; i < count; i++) {
@@ -316,7 +313,7 @@ void run_reader(int serial_port) {
             if (buffer[i] == '\n') {
                 line_buffer[line_buffer_ptr - 1] = '\0';
                 pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-                if (!decode(line_buffer, ignore < IGNORE)) {
+                if (!decode(line_buffer)) {
                     ZEJF_DEBUG(0, "Arduino: %s\n", line_buffer);
                 }
                 pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -337,8 +334,8 @@ end:
     pthread_exit(0);
 }
 
-void* run_serial(void *arg) {
-    char* serial = (char*) arg;
+void *run_serial(void *arg) {
+    char *serial = (char *) arg;
     serial_port_needs_join = true;
     serial_port_running = true;
     ZEJF_DEBUG(0, "serial reader thread start\n");
@@ -402,7 +399,7 @@ void* run_serial(void *arg) {
         pthread_exit(0);
     }
 
-    run_reader(serial_port);
+    run_reader(serial, serial_port);
     pthread_exit(0);
 }
 
