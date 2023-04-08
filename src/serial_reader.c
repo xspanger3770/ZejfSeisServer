@@ -134,11 +134,11 @@ void queue_thread_end(void) {
     sem_post(&log_queue_semaphore);
 }
 
-int count_diffs;
-int64_t sum_diffs;
-double last_avg_diff;
-bool last_set;
-bool calibrating;
+unsigned int count_diffs = 0;
+int64_t sum_diffs = 0;
+double last_avg_diff = 0;
+bool last_set = false;
+bool calibrating = false;
 
 #define SHIFT_CHECK 80
 
@@ -149,6 +149,7 @@ const char star = '*';
 void diff_control(int64_t diff, int shift) {
     count_diffs++;
     sum_diffs += diff;
+    printf("%d\n", count_diffs);
     if (count_diffs == SHIFT_CHECK) {
         double avg_diff = sum_diffs / (double) count_diffs;
         count_diffs = 0;
@@ -159,6 +160,7 @@ void diff_control(int64_t diff, int shift) {
                 calibrating = false;
                 ZEJF_DEBUG(0, "calibration done\n");
             }
+
             double change = avg_diff - last_avg_diff;
             double goal = calibrating ? -avg_diff / 4.0 : -avg_diff / 5.0;
             int shift_goal = (shift + (goal - change) / SHIFT_CHECK);
@@ -202,8 +204,8 @@ void diff_control(int64_t diff, int shift) {
 }
 
 int64_t first_log_id = -1;
-int first_log_num;
-int last_log_num;
+int first_log_num = 0;
+int last_log_num = 0;
 
 void next_sample(int shift, int log_num, int32_t value) {
     int64_t time = micros();
@@ -219,6 +221,7 @@ void next_sample(int shift, int log_num, int32_t value) {
             statistics.arduino_gaps++;
             ZEJF_DEBUG(2, "ERR COMM GAP!\n");
         }
+
         int64_t expected_time = (first_log_id + (log_num - first_log_num)) * SAMPLE_TIME_MS * 1000;
         int64_t diff = time - expected_time;
         diff_control(diff, shift);
@@ -235,6 +238,7 @@ void next_sample(int shift, int log_num, int32_t value) {
 }
 
 bool decode(char *buffer, bool ignore) {
+    printf("decode %s\n", buffer);
     if (buffer[0] != 's') {
         return false;
     }
@@ -303,6 +307,9 @@ void run_reader(int serial_port) {
             }
         }
 
+        printf("read %d\n", count);
+
+        // todo this is incorrect
         for (ssize_t i = 0; i < count; i++) {
             line_buffer[line_buffer_ptr] = buffer[i];
             line_buffer_ptr++;
