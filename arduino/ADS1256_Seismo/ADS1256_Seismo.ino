@@ -82,7 +82,7 @@ void setup()
 void loop()
 {
     if (!(digitalRead(PIN_DRDY))) {
-        reading = filter.filterIn(adc.readCurrentChannelRaw());
+        reading = filter.filterIn((adc.readCurrentChannel() / (2.0 * vRef)) * 0x7FFFFF);
         sum += reading;
         count++;
     }
