@@ -2,7 +2,7 @@
 
 ZejfCSeis is a command line program written in C used to collect, store and broadcast data from homemade seismometer. It communicates with microcontroller (Arduino) via USB and can be controlled using simple commands. Once the USB connection is enstablished, ZejfCSeis synchronizes the Arduino sampling rate to exactly match the one selected.
 
-Secondly, ZejfCSeis opens a TCP socket so that remote clients can connect to it and watch incoming data in real time as well as browsing historical data. This is achieved using the [ZejfSeis4](https://github.com/xspanger3770/ZejfSeis4) Java application. Here is what you can expect after setting up the seismometer: the image shows a magnitude 3.3 earthquake at a 170km distance.
+ZejfCSeis opens a TCP socket so that remote clients can connect to it and watch incoming data in real time as well as browsing historical data. This is achieved using the [ZejfSeis4](https://github.com/xspanger3770/ZejfSeis4) Java application. Here is what you can expect after setting up the seismometer: the image shows a magnitude 3.3 earthquake at a 170km distance.
 
 ![best_screenshot](https://user-images.githubusercontent.com/100421968/231841190-64a4e8ea-822e-417d-ae36-a20a293d10fd.png)
 
@@ -11,9 +11,7 @@ Secondly, ZejfCSeis opens a TCP socket so that remote clients can connect to it 
 
 **__Tutorial is work in progress!__**
 
-If you want to try this project yourself, firstly you will need to setup the Arduino and the seismometer itself. Tutorial can be found here: https://github.com/xspanger3770/ZejfCSeis/tree/main/arduino
-
-After that, the easiest way to get ZejfCSeis is to clone this repository locally. 
+The easiest way to get ZejfCSeis is to clone this repository locally. 
 
  ```
 git clone git@github.com:xspanger3770/ZejfCSeis.git
