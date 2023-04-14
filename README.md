@@ -11,7 +11,7 @@ ZejfSeisServer opens a TCP socket so that remote clients can connect to it and w
 
 **__Tutorial is work in progress!__**
 
-The easiest way to get ZejfCSeis is to clone this repository locally. 
+The easiest way to get ZejfSeisServer is to clone this repository locally. 
 
  ```
 git clone git@github.com:xspanger3770/ZejfSeisServer.git
