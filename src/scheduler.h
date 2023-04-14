@@ -3,7 +3,7 @@
 
 #include "my_string.h"
 
-#define ZEJFCSEIS_VERSION "1.5.0"
+#define ZEJF_VERSION "1.5.0"
 #define COMPATIBILITY_VERSION 4
 
 #define ZEJF_DEBUG_NORMAL 0
@@ -38,6 +38,6 @@ extern Options *options;
 
 void run_threads(Options *opts);
 
-void zejfcseis_exit(void);
+void zejf_exit(void);
 
 #endif
