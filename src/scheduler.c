@@ -123,7 +123,7 @@ void *stress() {
 void print_help(void) {
     printf("\n====== Available commands =======\n");
     printf("help - show help\n");
-    printf("exit - close ZejfCSeis\n");
+    printf("exit - close ZejfSeis Server\n");
     printf("info - print status and other technical info\n");
     printf("openport - try to open serial port\n");
     printf("closeport - close serial port\n");

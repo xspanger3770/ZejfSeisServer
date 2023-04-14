@@ -19,7 +19,7 @@ extern int SAMPLES_IN_HOUR;
 #define PERMANENTLY_LOADED_HOURS 12
 #define STORE_TIME_MINUTES 5
 
-#define MAIN_FOLDER "./ZejfCSeis/"
+#define MAIN_FOLDER "./ZejfSeis_Server/"
 
 extern pthread_mutex_t data_lock;
 
