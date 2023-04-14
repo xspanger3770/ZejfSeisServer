@@ -26,10 +26,10 @@ git clone git@github.com:xspanger3770/ZejfSeisServer.git
  make
  ```
  
- This should create an executable file called zejfcseis_(version). You can move it anywhere you like.
+ This should create an executable file called zejfseis_server_(version). You can move it anywhere you like.
  Run it using:
  ```
- ./zejfcseis_(version) -s <serial port> -i <ip address> -p <port number> -r <sample rate>
+ ./zejfseis_server_(version) -s <serial port> -i <ip address> -p <port number> -r <sample rate>
  ```
  Where:
  `serial port` is the name of serial port where the Arduino is connected
@@ -40,7 +40,7 @@ git clone git@github.com:xspanger3770/ZejfSeisServer.git
  The whole command might look like:
  
  ```
- ./zejfcseis_1.4.1 -s /dev/ttyUSB0 -i 192.168.1.100 -p 1234 -r 40
+ ./zejfseis_server_1.5.0 -s /dev/ttyUSB0 -i 192.168.1.100 -p 1234 -r 40
  ```
  
- If everything went well, the program will create a new folder `ZejfCSeis` where the data will be stored and you can now enjoy detecting earthquakes by connecting to the TCP socket with [ZejfSeis](https://github.com/xspanger3770/ZejfSeis).
+ If everything went well, the program will create a new folder `ZejfSeis_Server` where the data will be stored and you can now enjoy detecting earthquakes by connecting to the TCP socket with [ZejfSeis](https://github.com/xspanger3770/ZejfSeis).
