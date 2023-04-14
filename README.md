@@ -1,27 +1,25 @@
-# About ZejfCSeis
+# About ZejfSeisServer
 
-ZejfCSeis is a command line program written in C used to collect, store and broadcast data from homemade seismometer. It communicates with microcontroller (Arduino) via USB and can be controlled using simple commands. Once the USB connection is enstablished, ZejfCSeis synchronizes the Arduino sampling rate to exactly match the one selected.
+ZejfSeisServer is a command line program written in C used to collect, store and broadcast data from homemade seismometer. It communicates with microcontroller (Arduino) via USB and can be controlled using simple commands. Once the USB connection is enstablished, ZejfSeisServer synchronizes the Arduino sampling rate to exactly match the one selected.
 
-Secondly, ZejfCSeis opens a TCP socket so that remote clients can connect to it and watch incoming data in real time as well as browsing historical data. This is achieved using the [ZejfSeis4](https://github.com/xspanger3770/ZejfSeis4) Java application. Here is what you can expect after setting up the seismometer: the image shows a magnitude 3.3 earthquake at a 170km distance.
+ZejfSeisServer opens a TCP socket so that remote clients can connect to it and watch incoming data in real time as well as browsing historical data. This is achieved using the [ZejfSeis](https://github.com/xspanger3770/ZejfSeis) Java application. Here is what you can expect after setting up the seismometer: the image shows a magnitude 3.3 earthquake at a 170km distance.
 
 ![best_screenshot](https://user-images.githubusercontent.com/100421968/231841190-64a4e8ea-822e-417d-ae36-a20a293d10fd.png)
 
 
-# How to run ZejfCSeis
+# How to run ZejfSeisServer
 
 **__Tutorial is work in progress!__**
 
-If you want to try this project yourself, firstly you will need to setup the Arduino and the seismometer itself. Tutorial can be found here: https://github.com/xspanger3770/ZejfCSeis/tree/main/arduino
-
-After that, the easiest way to get ZejfCSeis is to clone this repository locally. 
+The easiest way to get ZejfCSeis is to clone this repository locally. 
 
  ```
-git clone git@github.com:xspanger3770/ZejfCSeis.git
+git clone git@github.com:xspanger3770/ZejfSeisServer.git
  ```
  
- Then inside the `ZejfCSeis` folder, create new folder called `build` and build the project using CMake:
+ Then inside the `ZejfSeisServer` folder, create new folder called `build` and build the project using CMake:
  ```
- cd ZejfCSeis
+ cd ZejfSeisServer
  mkdir build
  cd build
  cmake ..
@@ -45,4 +43,4 @@ git clone git@github.com:xspanger3770/ZejfCSeis.git
  ./zejfcseis_1.4.1 -s /dev/ttyUSB0 -i 192.168.1.100 -p 1234 -r 40
  ```
  
- If everything went well, the program will create a new folder `ZejfCSeis` where the data will be stored and you can now enjoy detecting earthquakes by connecting to the TCP socket with [ZejfSeis4](https://github.com/xspanger3770/ZejfSeis4).
+ If everything went well, the program will create a new folder `ZejfCSeis` where the data will be stored and you can now enjoy detecting earthquakes by connecting to the TCP socket with [ZejfSeis](https://github.com/xspanger3770/ZejfSeis).
