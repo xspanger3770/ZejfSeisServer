@@ -81,7 +81,7 @@ void close_server() {
 }
 
 void print_info() {
-    printf("\n========= ZejfCSeis v%s ===========\n", ZEJFCSEIS_VERSION);
+    printf("\n========= ZejfSeis Server v%s ===========\n", ZEJF_VERSION);
     printf("sample rate: %d sps\n", SAMPLES_PER_SECOND);
     printf("serial port: %s\n", options->serial->data);
     printf("server address: %s:%d\n", options->ip_address->data, options->port);
@@ -204,13 +204,13 @@ void run_threads(Options *opts) {
 
     command_line();
 
-    zejfcseis_exit();
+    zejf_exit();
 }
 
-void zejfcseis_exit(void) {
+void zejf_exit(void) {
     // order is important
 
-    printf("Closing ZejfCSeis...\n");
+    printf("Closing ZejfSeis Server...\n");
 
     close_server();
     pthread_cancel(server_watchdog_thread);

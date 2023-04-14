@@ -9,10 +9,10 @@ set(ALL_FLAGS "-O2 -std=gnu99 -Wall -Wextra -Werror -Wpedantic")
 
 # Executable
 
-set(ZEJFCSEIS_VERSION "1.5.0")
-set(EXECUTABLE zejfcseis_${ZEJFCSEIS_VERSION})
+set(ZEJF_VERSION "1.5.0")
+set(EXECUTABLE zejfseis_server_${ZEJF_VERSION})
 
-project(zejfcseis)
+project(zejfseis_server)
 file(GLOB SOURCES "src/*.c")
 
 add_executable(${EXECUTABLE} ${SOURCES})
