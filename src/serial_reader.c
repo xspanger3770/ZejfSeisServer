@@ -302,7 +302,6 @@ void run_reader(char *serial, int serial_port) {
             }
         }
 
-        // todo this is incorrect
         for (ssize_t i = 0; i < count; i++) {
             line_buffer[line_buffer_ptr] = buffer[i];
             line_buffer_ptr++;
