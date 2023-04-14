@@ -270,10 +270,13 @@ void run_reader(char *serial, int serial_port) {
     count_diffs = 0;
     sum_diffs = 0;
     first_log_id = -1;
+    first_log_num = 0;
+    last_log_num = 0;
     calibrating = true;
     last_set = false;
     last_log_id = -1;
     last_avg_diff = 0;
+
     char msg[2];
     msg[0] = 'r';
     msg[1] = '0' + options->sample_rate_id;
