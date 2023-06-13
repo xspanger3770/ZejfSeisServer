@@ -57,7 +57,7 @@ void next_log(int32_t value, int64_t log_id) {
     }
     int64_t gap = log_id - last_log_id;
     if (gap > 1) {
-        ZEJF_DEBUG(2, "GAP %ld!\n", gap);
+        ZEJF_LOG(0, "GAP %ld!\n", gap);
         statistics.gaps++;
     }
 
@@ -76,7 +76,7 @@ void next_log(int32_t value, int64_t log_id) {
 }
 
 void *run_queue_thread() {
-    ZEJF_DEBUG(0, "QueueThread run\n");
+    ZEJF_LOG(0, "QueueThread run\n");
     queue_thread_running = true;
     while (queue_thread_running) {
         sem_wait(&log_queue_semaphore);
@@ -125,7 +125,7 @@ void *run_queue_thread() {
         pthread_mutex_unlock(&log_queue_lock);
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     }
-    ZEJF_DEBUG(0, "QueueThread finish\n");
+    ZEJF_LOG(0, "QueueThread finish\n");
     pthread_exit(0);
 }
 
@@ -157,7 +157,7 @@ void diff_control(int64_t diff, int shift) {
         if (last_set) {
             if (calibrating && fabs(avg_diff) < CALIBRATION_TRESHOLD) {
                 calibrating = false;
-                printf("Calibration done, you can now see the data.\n");
+                ZEJF_LOG(1, "Calibration done, you can now see the data.\n");
             }
 
             double change = avg_diff - last_avg_diff;
@@ -186,7 +186,7 @@ void diff_control(int64_t diff, int shift) {
                 }
             }
 
-            ZEJF_DEBUG(1, "avg diff: %.5fms, changed by %.2fms, goal: %.2fms, shift: %d, target shift: %d\n", avg_diff / 1000.0, change / 1000.0, goal / 1000.0, shift, shift_goal);
+            ZEJF_LOG(0, "avg diff: %.5fms, changed by %.2fms, goal: %.2fms, shift: %d, target shift: %d\n", avg_diff / 1000.0, change / 1000.0, goal / 1000.0, shift, shift_goal);
         }
 
         last_avg_diff = avg_diff;
@@ -210,8 +210,7 @@ void next_sample(int shift, int log_num, int32_t value) {
     int64_t time = micros();
     if (first_log_id == -1) {
         first_log_id = time / (1000 * SAMPLE_TIME_MS) + 1;
-        ZEJF_DEBUG(1, "calibrating %ld us\n", first_log_id * 1000 * SAMPLE_TIME_MS - time);
-        printf("Calibrating, please wait...\n");
+        ZEJF_LOG(1, "Calibrating %ld us\n", first_log_id * 1000 * SAMPLE_TIME_MS - time);
         first_log_num = log_num;
     } else {
         if (log_num == last_log_num) {
@@ -221,7 +220,7 @@ void next_sample(int shift, int log_num, int32_t value) {
             first_log_num = log_num;
         } else if (log_num - last_log_num > 1) {
             statistics.arduino_gaps++;
-            ZEJF_DEBUG(2, "ERR COMM GAP!\n");
+            ZEJF_LOG(0, "ERR COMM GAP!\n");
         }
 
         int64_t expected_time = (first_log_id + (log_num - first_log_num)) * SAMPLE_TIME_MS * 1000;
@@ -280,14 +279,14 @@ void run_reader(char *serial, int serial_port) {
     char msg[2];
     msg[0] = 'r';
     msg[1] = '0' + options->sample_rate_id;
-    ZEJF_DEBUG(0, "waiting for serial device\n");
+    ZEJF_LOG(0, "Waiting for serial device...\n");
     sleep(3);
     if (write(serial_port, msg, 2) == -1) {
         perror("write");
         goto end;
     }
 
-    printf("Serial port connected!\n");
+    ZEJF_LOG(1, "Serial port connected\n");
 
     char buffer[BUFFER_SIZE];
     char line_buffer[LINE_BUFFER_SIZE];
@@ -312,13 +311,13 @@ void run_reader(char *serial, int serial_port) {
                 line_buffer[line_buffer_ptr - 1] = '\0';
                 pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
                 if (!decode(line_buffer)) {
-                    ZEJF_DEBUG(0, "Arduino: %s\n", line_buffer);
+                    ZEJF_LOG(0, "Arduino: %s\n", line_buffer);
                 }
                 pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
                 line_buffer_ptr = 0;
             }
             if (line_buffer_ptr == LINE_BUFFER_SIZE - 1) {
-                ZEJF_DEBUG(2, "ERR SERIAL READER BUFF OVERFLOW\n");
+                ZEJF_LOG(0, "ERR SERIAL READER BUFF OVERFLOW\n");
                 line_buffer_ptr = 0;
             }
         }
@@ -326,8 +325,7 @@ void run_reader(char *serial, int serial_port) {
 
 end:
 
-    printf("Serial port closed!\n");
-    ZEJF_DEBUG(0, "serial reader thread finish\n");
+    ZEJF_LOG(0, "Serial reader thread finish\n");
     serial_port_running = false;
     pthread_exit(0);
 }
@@ -336,9 +334,8 @@ void *run_serial(void *arg) {
     char *serial = (char *) arg;
     serial_port_needs_join = true;
     serial_port_running = true;
-    ZEJF_DEBUG(0, "serial reader thread start\n");
+    ZEJF_LOG(1, "Trying to open serial port %s\n", serial);
 
-    printf("Trying to open serial port %s\n", serial);
     // Open the serial port. Change device path as needed (currently set to an
     // standard FTDI USB-UART cable type device)
     serial_port = open(serial, O_RDWR);
@@ -348,8 +345,7 @@ void *run_serial(void *arg) {
 
     // Read in existing settings, and handle any error
     if (tcgetattr(serial_port, &tty) != 0) {
-        printf("Unable to open serial port %s: %s\n", serial, strerror(errno));
-        ZEJF_DEBUG(1, "error %i from tcgetattr: %s\n", errno, strerror(errno));
+        ZEJF_LOG(2, "Error %i from tcgetattr: %s\n", errno, strerror(errno));
         serial_port_running = false;
         pthread_exit(0);
     }
@@ -391,8 +387,7 @@ void *run_serial(void *arg) {
 
     // Save tty settings, also checking for error
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
-        printf("Unable to open serial port %s: %s\n", serial, strerror(errno));
-        ZEJF_DEBUG(1, "error %i from tcsetattr: %s\n", errno, strerror(errno));
+        ZEJF_LOG(2, "Error %i from tcsetattr: %s\n", errno, strerror(errno));
         serial_port_running = false;
         pthread_exit(0);
     }

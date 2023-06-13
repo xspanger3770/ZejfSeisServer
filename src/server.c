@@ -39,14 +39,14 @@ void server_init() {
 }
 
 void register_request(ServerClient *client, int64_t first_log_id, int64_t last_log_id) {
-    ZEJF_DEBUG(0, "registering DataRequest from %ld to %ld\n", first_log_id, last_log_id);
+    ZEJF_LOG(0, "registering DataRequest from %ld to %ld\n", first_log_id, last_log_id);
     if (last_log_id < first_log_id) {
-        ZEJF_DEBUG(1, "invalid request\n");
+        ZEJF_LOG(1, "invalid request\n");
         return;
     }
 
     if ((last_log_id - first_log_id) * SAMPLE_TIME_MS / (1000 * 60 * 60l) > DATA_REQUEST_MAX_LENGTH_HOURS) {
-        ZEJF_DEBUG(1, "too long request\n");
+        ZEJF_LOG(1, "too long request\n");
         return;
     }
 
@@ -54,11 +54,11 @@ void register_request(ServerClient *client, int64_t first_log_id, int64_t last_l
 
     if ((client->requests_head + 1) % DATA_REQUEST_BUFFER == client->requests_tail) {
         pthread_mutex_unlock(&client->data_requests_mutex);
-        ZEJF_DEBUG(1, "ERROR: maximum number of DataRequests reached for client #%ld\n", client->id);
+        ZEJF_LOG(1, "ERROR: maximum number of DataRequests reached for client #%ld\n", client->id);
         return;
     }
 
-    ZEJF_DEBUG(0, "HEAD %d, TAIL %d, MAX = %d\n", client->requests_head, client->requests_tail, DATA_REQUEST_BUFFER);
+    ZEJF_LOG(0, "HEAD %d, TAIL %d, MAX = %d\n", client->requests_head, client->requests_tail, DATA_REQUEST_BUFFER);
 
     client->data_requests[client->requests_head].first_log_id = first_log_id;
     client->data_requests[client->requests_head].last_log_id = last_log_id;
@@ -73,7 +73,7 @@ void process_client_command(ServerClient *client, char *command) {
         int64_t last_log_id = read_64(client->file);
         client->last_sent_log_id = last_log_id;
         client->realtime = !client->realtime;
-        ZEJF_DEBUG(0, "realtime toggled for client #%ld from %ld\n", client->id, last_log_id);
+        ZEJF_LOG(0, "realtime toggled for client #%ld from %ld\n", client->id, last_log_id);
     } else if (strcmp(command, "getdata\n") == 0) {
         int64_t first_log_id = read_64(client->file);
         int64_t last_log_id = read_64(client->file);
@@ -99,7 +99,7 @@ void process_client_command(ServerClient *client, char *command) {
 
         sem_post(&log_queue_semaphore);
     } else {
-        ZEJF_DEBUG(1, "client #%ld received unknown command '%s'\n", client->id, command);
+        ZEJF_LOG(1, "client #%ld received unknown command '%s'\n", client->id, command);
     }
 }
 
@@ -113,7 +113,7 @@ void *run_input_thread(void *arg) {
         process_client_command(client, buffer);
     }
 
-    ZEJF_DEBUG(0, "client #%ld input thread finish\n", client->id);
+    ZEJF_LOG(0, "client #%ld input thread finish\n", client->id);
     client->connected = false;
     pthread_exit(0);
 }
@@ -141,7 +141,7 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t *last_ptr, char *comm
             if (val != ERR_VAL) {
                 sn_count = snprintf(send_buffer_ptr, 48, "%d\n%ld\n", val, start);
                 if (sn_count < 0) {
-                    ZEJF_DEBUG(1, "snprintf fail\n");
+                    ZEJF_LOG(0, "snprintf fail\n");
                     pthread_mutex_unlock(&data_lock);
                     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
                     return false;
@@ -174,7 +174,7 @@ bool send_logs(int fd, int64_t start, int64_t end, int64_t *last_ptr, char *comm
 
     sn_count = snprintf(msg, 32, "%d\n", ERR_VAL);
     if (sn_count < 0) {
-        ZEJF_DEBUG(1, "snprintf fail\n");
+        ZEJF_LOG(0, "snprintf fail\n");
         return false;
     }
 
@@ -281,7 +281,7 @@ void *run_output_thread(void *arg) {
         }
     }
 
-    ZEJF_DEBUG(0, "client #%ld output thread finish\n", client->id);
+    ZEJF_LOG(0, "client #%ld output thread finish\n", client->id);
     client->connected = false;
 
     pthread_exit(0);
@@ -317,7 +317,7 @@ bool send_initial_info(int socket) {
         }
     }
 
-    ZEJF_DEBUG(0, "Initial info sent.\n");
+    ZEJF_LOG(0, "Initial info sent.\n");
     return true;
 }
 
@@ -354,7 +354,7 @@ void client_connect(int socket) {
     list_append(clients, &client);
     pthread_mutex_unlock(&clients_lock);
 
-    ZEJF_DEBUG(0, "current client count: %ld\n", clients->item_count);
+    ZEJF_LOG(0, "current client count: %ld\n", clients->item_count);
 }
 
 void client_destructor(void **ptr) {
@@ -362,7 +362,7 @@ void client_destructor(void **ptr) {
         return;
     }
     ServerClient *client = *((ServerClient **) ptr);
-    ZEJF_DEBUG(0, "destroying client #%ld\n", client->id);
+    ZEJF_LOG(0, "destroying client #%ld\n", client->id);
     client->connected = false;
 
     sem_post(&client->output_semaphore);
@@ -377,7 +377,7 @@ void client_destructor(void **ptr) {
     fclose(client->file);
     client->file = NULL;
 
-    ZEJF_DEBUG(0, "done destroying client #%ld\n", client->id);
+    ZEJF_LOG(0, "done destroying client #%ld\n", client->id);
     free(client);
 }
 
@@ -388,23 +388,21 @@ void *server_run(void *args) {
     server_running = true;
     next_client_id = 0;
     Options *options = (Options *) args;
-    printf("Opening server on %s:%d\n", options->ip_address->data, options->port);
+    ZEJF_LOG(1, "Opening server on %s:%d\n", options->ip_address->data, options->port);
 
     int new_socket;
     int opt = 1;
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        printf("Unable to open server: %s\n", strerror(errno));
-        perror("socket failed");
+        ZEJF_LOG(2, "Unable to open server: %s\n", strerror(errno));
         server_running = false;
         pthread_exit(0);
     }
 
     // Forcefully attaching socket to the port
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-        printf("Unable to open port: %s\n", strerror(errno));
-        perror("setsockopt");
+        ZEJF_LOG(2, "Unable to open port: %s\n", strerror(errno));
         server_running = false;
         pthread_exit(0);
     }
@@ -417,25 +415,22 @@ void *server_run(void *args) {
 
     // Forcefully attaching socket to the port 8080
     if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) < 0) {
-        printf("Unable to bind server: %s\n", strerror(errno));
-        perror("bind failed");
+        ZEJF_LOG(2, "Unable to bind server: %s\n", strerror(errno));
         server_running = false;
         pthread_exit(0);
     }
 
-    printf("Server is open!\n");
+    ZEJF_LOG(1, "Server is open!\n");
 
     while (true) {
         if (listen(server_fd, 3) < 0) {
-            printf("Server closed: %s\n", strerror(errno));
-            perror("listen");
+            ZEJF_LOG(1, "Server closed: %s\n", strerror(errno));
             server_running = false;
             pthread_exit(0);
         }
-        ZEJF_DEBUG(0, "accept\n");
+        ZEJF_LOG(0, "accept\n");
         if ((new_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) < 0) {
-            printf("Server closed: %s\n", strerror(errno));
-            perror("accept");
+            ZEJF_LOG(1, "Server closed: %s\n", strerror(errno));
             server_running = false;
             pthread_exit(0);
         }
@@ -457,7 +452,7 @@ void *run_server_watchdog() {
         while (i < clients->item_count) {
             ServerClient *client = *(ServerClient **) list_get(clients, i);
             if (!client->connected || time - client->last_heartbeat > CLIENT_TIMEOUT_SEC * 1000) {
-                ZEJF_DEBUG(0, "client #%ld timeout\n", client->id);
+                ZEJF_LOG(0, "client #%ld timeout\n", client->id);
                 list_remove(clients, i, client_destructor);
                 i--;
             } else {
