@@ -2,14 +2,12 @@
 
 ZejfSeisServer is a command line program written in C used to collect, store and broadcast data from homemade seismometer. It communicates with microcontroller (Arduino) via USB and can be controlled using simple commands. Once the USB connection is enstablished, ZejfSeisServer synchronizes the Arduino sampling rate to exactly match the one selected.
 
-ZejfSeisServer opens a TCP socket so that remote clients can connect to it and watch incoming data in real time as well as browsing historical data. This is achieved using the [ZejfSeis](https://github.com/xspanger3770/ZejfSeis) Java application. Here is what you can expect after setting up the seismometer: the image shows a magnitude 3.3 earthquake at a 170km distance.
+ZejfSeisServer opens a TCP socket so that remote clients can connect to it and watch incoming data in real time as well as browsing historical data. This is achieved using the [ZejfSeis](https://github.com/xspanger3770/ZejfSeis) Java application. Here is screenshot from the command line interface:
 
-![best_screenshot](https://user-images.githubusercontent.com/100421968/231841190-64a4e8ea-822e-417d-ae36-a20a293d10fd.png)
+![screenshot_cli](https://github.com/xspanger3770/ZejfSeisServer/assets/100421968/b818be2b-8837-4aa0-b689-115a4a5f2e82)
 
 
 # How to run ZejfSeisServer
-
-**__Tutorial is work in progress!__**
 
 The easiest way to get ZejfSeisServer is to clone this repository locally. 
 
