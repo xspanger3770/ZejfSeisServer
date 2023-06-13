@@ -3,17 +3,17 @@
 
 #include "my_string.h"
 
-#define ZEJF_VERSION "1.5.0"
+#define ZEJF_VERSION "1.5.1"
 #define COMPATIBILITY_VERSION 4
 
-#define ZEJF_DEBUG_NORMAL 0
-#define ZEJF_DEBUG_IMPORTANT 1
-#define ZEJF_DEBUG_CRITICAL 2
-#define ZEJF_DEBUG_DISABLED 99
+// DEBUG
+#define ZEJF_LOG_DEBUG 0
+#define ZEJF_LOG_INFO 1
+#define ZEJF_LOG_CRITICAL 2
 
-#define ZEJF_DEBUG_LEVEL 99
-#define ZEJF_DEBUG(p, x, ...)  \
-    do { if(p >= ZEJF_DEBUG_LEVEL) printf(x, ##__VA_ARGS__); } while(0)
+#define ZEJF_LOG_LEVEL 1
+#define ZEJF_LOG(p, x, ...)  \
+    do { if(p >= ZEJF_LOG_LEVEL) printf(x, ##__VA_ARGS__); } while(0)
 
 
 typedef struct options_t

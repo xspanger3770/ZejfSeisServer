@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     SAMPLE_TIME_MS = 1000 / SAMPLES_PER_SECOND;
     SAMPLES_IN_HOUR = SAMPLES_PER_SECOND * 60 * 60;
 
-    printf("Starting ZejfSeis Server with serial %s, ip %s:%d\n", serial, ip, port);
+    ZEJF_LOG(1, "Starting ZejfSeis Server with serial port %s, ip %s:%d\n", serial, ip, port);
 
     String *ip_string = string_create(ip);
     String *serial_string = string_create(serial);

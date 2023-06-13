@@ -9,7 +9,7 @@ set(ALL_FLAGS "-O2 -std=gnu99 -Wall -Wextra -Werror -Wpedantic")
 
 # Executable
 
-set(ZEJF_VERSION "1.5.0")
+set(ZEJF_VERSION "1.5.1")
 set(EXECUTABLE zejfseis_server_${ZEJF_VERSION})
 
 project(zejfseis_server)

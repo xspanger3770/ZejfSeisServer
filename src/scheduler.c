@@ -48,7 +48,7 @@ void close_port() {
     pthread_join(serial_reader_thread, NULL);
     serial_port_needs_join = false;
     serial_port_running = false;
-    ZEJF_DEBUG(1, "joined with serial reader thread\n");
+    ZEJF_LOG(0, "Joined with serial reader thread\n");
 }
 
 void open_server() {
@@ -77,7 +77,7 @@ void close_server() {
     server_close();
     server_needs_join = false;
     server_running = false;
-    ZEJF_DEBUG(1, "Joined with server thread\n");
+    ZEJF_LOG(1, "Server closed.\n");
 }
 
 void print_info() {
@@ -168,7 +168,7 @@ bool process_command(char *line) {
 }
 
 void command_line() {
-    ZEJF_DEBUG(0, "command line active\n");
+    ZEJF_LOG(0, "Command line active\n");
     size_t len = 0;
     ssize_t lineSize = 0;
     while (true) {
@@ -210,30 +210,30 @@ void run_threads(Options *opts) {
 void zejf_exit(void) {
     // order is important
 
-    printf("Closing ZejfSeis Server...\n");
+    ZEJF_LOG(1, "Closing ZejfSeis Server...\n");
 
     close_server();
     pthread_cancel(server_watchdog_thread);
     pthread_join(server_watchdog_thread, NULL);
-    ZEJF_DEBUG(0, "joined with server watchdog thread\n");
+    ZEJF_LOG(0, "joined with server watchdog thread\n");
 
     server_destroy();
-    ZEJF_DEBUG(0, "server destroyed.\n");
+    ZEJF_LOG(0, "server destroyed.\n");
     close_port();
-    ZEJF_DEBUG(0, "port closed\n");
+    ZEJF_LOG(0, "port closed\n");
     queue_thread_end();
-    ZEJF_DEBUG(0, "queue Thread end sent\n");
+    ZEJF_LOG(0, "queue Thread end sent\n");
 
     pthread_cancel(log_queue_thread);
     pthread_join(log_queue_thread, NULL);
-    ZEJF_DEBUG(0, "joined with queue thread\n");
+    ZEJF_LOG(0, "joined with queue thread\n");
 
     pthread_cancel(data_manager_thread);
     pthread_join(data_manager_thread, NULL);
 
     serial_reader_destroy();
-    ZEJF_DEBUG(0, "serial reader destroyed\n");
+    ZEJF_LOG(0, "serial reader destroyed\n");
 
     data_destroy();
-    ZEJF_DEBUG(0, "joined with data manager thread\n");
+    ZEJF_LOG(0, "joined with data manager thread\n");
 }
